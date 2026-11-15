@@ -20,40 +20,49 @@ interface PlanetGlobeProps {
   autoRotate?: boolean;
 }
 
+// NASA Visual Configuration (High Definition & Clean Monochrome / NASA Blue)
 const BODY_CONFIG = {
   earth: {
     name: 'EARTH',
     sub: 'WGS 84 SATELLITE BASMAP',
     texture: '/earth_naturalearth.jpg',
-    fallbackColor: '#1d4a66',
-    atmosphereColor: '#63b3ed',
-    atmosphereOpacity: 0.12,
-    radius: 2.2,
-    cameraDist: 6.8,
+    fallbackColor: '#0b2545',
+    atmosphereColor: '#1a6fd8', // NASA Blue limb
+    atmosphereOpacity: 0.22,
+    radius: 2.3,
+    cameraDist: 6.6,
   },
   moon: {
     name: 'THE MOON',
-    sub: 'NASA LRO LOLA SCIENTIFIC TEXTURE',
+    sub: 'NASA LRO LOLA TOPOGRAPHY',
     texture: '/moon.jpg',
-    fallbackColor: '#7a7e85',
-    atmosphereColor: '#a0aec0',
-    atmosphereOpacity: 0.03,
-    radius: 2.2,
-    cameraDist: 6.8,
+    fallbackColor: '#2d3748',
+    atmosphereColor: '#718096',
+    atmosphereOpacity: 0.04,
+    radius: 2.3,
+    cameraDist: 6.6,
   },
   mars: {
     name: 'MARS',
-    sub: 'NASA MOLA / VIKING MDIM2.1',
+    sub: 'NASA MOLA / VIKING MDIM',
     texture: '/mars.jpg',
-    fallbackColor: '#a24b2f',
-    atmosphereColor: '#ed8936',
-    atmosphereOpacity: 0.09,
-    radius: 2.2,
-    cameraDist: 6.8,
+    fallbackColor: '#5c2d1f',
+    atmosphereColor: '#9c4221',
+    atmosphereOpacity: 0.12,
+    radius: 2.3,
+    cameraDist: 6.6,
   },
 };
 
-function CelestialSphere({ body, radius, onClickCoords }: { body: 'earth' | PlanetaryBody; radius: number; onClickCoords?: (lat: number, lon: number) => void }) {
+function CelestialSphere({
+  body,
+  radius,
+  onClickCoords,
+}: {
+  body: 'earth' | PlanetaryBody;
+  radius: number;
+  onClickCoords?: (lat: number, lon: number) => void;
+}) {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
   const cfg = BODY_CONFIG[body];
 
@@ -68,12 +77,14 @@ function CelestialSphere({ body, radius, onClickCoords }: { body: 'earth' | Plan
           return;
         }
         tex.colorSpace = THREE.SRGBColorSpace;
-        tex.anisotropy = 8;
+        tex.generateMipmaps = true;
+        tex.minFilter = THREE.LinearMipmapLinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.anisotropy = 16;
         setTexture(tex);
       },
       undefined,
       () => {
-        // Fallback if texture fails
         if (active) setTexture(null);
       }
     );
@@ -86,7 +97,6 @@ function CelestialSphere({ body, radius, onClickCoords }: { body: 'earth' | Plan
   const handlePointerDown = (e: any) => {
     if (!onClickCoords || !e.point) return;
     const p = e.point.clone().normalize();
-    // Convert cartesian back to lat/lon
     const lat = 90 - (Math.acos(Math.max(-1, Math.min(1, p.y))) * 180) / Math.PI;
     const lon = (Math.atan2(p.x, p.z) * 180) / Math.PI;
     onClickCoords(parseFloat(lat.toFixed(4)), parseFloat(lon.toFixed(4)));
@@ -94,20 +104,20 @@ function CelestialSphere({ body, radius, onClickCoords }: { body: 'earth' | Plan
 
   return (
     <group>
-      {/* Planetary Surface Mesh */}
+      {/* High-Resolution Planetary Sphere (128x96 subdivisions) */}
       <mesh rotation={[0, Math.PI, 0]} onPointerDown={handlePointerDown}>
-        <sphereGeometry args={[radius, 96, 64]} />
+        <sphereGeometry args={[radius, 128, 96]} />
         <meshStandardMaterial
           map={texture ?? undefined}
           color={texture ? '#ffffff' : cfg.fallbackColor}
-          roughness={0.92}
-          metalness={0.05}
+          roughness={0.84}
+          metalness={0.06}
         />
       </mesh>
 
-      {/* Atmospheric Rim Glow */}
+      {/* Atmospheric Scattering Glow Shell */}
       <mesh>
-        <sphereGeometry args={[radius * 1.025, 64, 48]} />
+        <sphereGeometry args={[radius * 1.022, 96, 64]} />
         <meshBasicMaterial
           color={cfg.atmosphereColor}
           transparent
@@ -147,14 +157,14 @@ function SiteMarker3D({
 
   useFrame(({ clock }) => {
     if (ringRef.current && (hovered || selected)) {
-      const scale = 1 + Math.sin(clock.getElapsedTime() * 4) * 0.22;
+      const scale = 1 + Math.sin(clock.getElapsedTime() * 4.5) * 0.25;
       ringRef.current.scale.set(scale, scale, scale);
     }
   });
 
   return (
     <group position={pos}>
-      {/* Pulse Beacon Disk */}
+      {/* Central Tactical Dot */}
       <mesh
         ref={ringRef}
         onClick={(e) => {
@@ -167,37 +177,36 @@ function SiteMarker3D({
         }}
         onPointerOut={() => setHovered(false)}
       >
-        <sphereGeometry args={[selected ? 0.065 : 0.045, 16, 16]} />
+        <sphereGeometry args={[selected ? 0.06 : 0.042, 16, 16]} />
         <meshBasicMaterial color={selected ? '#ffffff' : color} />
       </mesh>
 
-      {/* Outer Pulse Ring */}
+      {/* Pulsing Outer Tactical Ring */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.07, 0.09, 32]} />
-        <meshBasicMaterial color={color} transparent opacity={selected ? 0.85 : 0.45} side={THREE.DoubleSide} />
+        <ringGeometry args={[0.065, 0.085, 32]} />
+        <meshBasicMaterial color={color} transparent opacity={selected ? 0.9 : 0.4} side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Label Tooltip */}
+      {/* Minimalist NASA Telemetry Label Tooltip */}
       {(hovered || selected) && (
-        <Html distanceFactor={11} position={[0, 0.12, 0]} center style={{ pointerEvents: 'none' }}>
+        <Html distanceFactor={10} position={[0, 0.1, 0]} center style={{ pointerEvents: 'none' }}>
           <div
             style={{
-              background: 'rgba(8, 14, 24, 0.92)',
-              border: `1px solid ${selected ? '#63b3ed' : color}`,
-              borderRadius: '6px',
-              padding: '6px 10px',
+              background: 'rgba(0, 0, 0, 0.92)',
+              border: `1px solid ${selected ? '#ffffff' : '#0b3d91'}`,
+              borderRadius: '4px',
+              padding: '5px 8px',
               color: '#ffffff',
               whiteSpace: 'nowrap',
-              fontFamily: 'system-ui, sans-serif',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
-              transform: 'translateY(-10px)',
+              fontFamily: 'monospace, system-ui, sans-serif',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.8)',
             }}
           >
-            <div style={{ fontSize: '10px', fontWeight: 800, color, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              {badge || 'SITE'}
+            <div style={{ fontSize: '9px', fontWeight: 800, color: '#3b82f6', letterSpacing: '0.1em' }}>
+              {badge || 'TARGET'}
             </div>
-            <div style={{ fontSize: '12px', fontWeight: 700, margin: '2px 0' }}>{title}</div>
-            <div style={{ fontSize: '10px', color: '#a0aec0' }}>{subtitle}</div>
+            <div style={{ fontSize: '11px', fontWeight: 700, margin: '2px 0', color: '#ffffff' }}>{title}</div>
+            <div style={{ fontSize: '9px', color: '#94a3b8' }}>{subtitle}</div>
           </div>
         </Html>
       )}
@@ -223,7 +232,6 @@ function Scene({
   const lastReset = useRef(resetSignal);
   const cfg = BODY_CONFIG[body];
 
-  // Camera reset
   useEffect(() => {
     if (lastReset.current !== resetSignal) {
       lastReset.current = resetSignal;
@@ -231,7 +239,6 @@ function Scene({
     }
   }, [resetSignal, cfg.cameraDist]);
 
-  // Center camera on selected reference or analog
   useEffect(() => {
     const lat = selectedAnalog?.latitude ?? selectedReference?.latitude;
     const lon = selectedAnalog?.longitude ?? selectedReference?.longitude;
@@ -252,16 +259,15 @@ function Scene({
 
   return (
     <>
-      <color attach="background" args={['#05080f']} />
-      <ambientLight intensity={1.25} />
-      <directionalLight position={[6, 4, 8]} intensity={2.8} />
-      <directionalLight position={[-6, -2, -4]} intensity={0.4} color="#4a5568" />
-      <Stars radius={90} depth={40} count={2200} factor={3.5} saturation={0} fade speed={0.4} />
+      <color attach="background" args={['#000000']} />
+      <ambientLight intensity={0.9} />
+      <directionalLight position={[7, 5, 8]} intensity={3.0} />
+      <directionalLight position={[-7, -3, -5]} intensity={0.25} color="#1e293b" />
+      <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={0.3} />
 
-      {/* Celestial Globe */}
       <CelestialSphere body={body} radius={cfg.radius} onClickCoords={onSelectCoordinate} />
 
-      {/* Moon/Mars Reference Markers */}
+      {/* Moon/Mars Reference Markers (NASA Blue / White) */}
       {body !== 'earth' &&
         referenceSites.map((site) => (
           <SiteMarker3D
@@ -271,46 +277,39 @@ function Scene({
             radius={cfg.radius}
             title={site.name}
             subtitle={`${Math.abs(site.latitude).toFixed(2)}°${site.latitude >= 0 ? 'N' : 'S'}, ${Math.abs(site.longitude).toFixed(2)}°${site.longitude >= 0 ? 'E' : 'W'}`}
-            badge={body === 'moon' ? 'LUNAR MISSION' : 'MARS EXPLORER'}
+            badge={body === 'moon' ? 'LUNAR' : 'MARS'}
             selected={selectedReference?.id === site.id}
-            color={body === 'moon' ? '#ecc94b' : '#f56565'}
+            color="#0b3d91"
             onClick={() => onSelectReference && onSelectReference(site)}
           />
         ))}
 
-      {/* Earth Analog Markers */}
+      {/* Earth Analog Markers (NASA Blue / White) */}
       {body === 'earth' &&
-        analogSites.map((site, index) => {
-          const topExp = site.experiments?.[0];
-          const badgeText = `RANK #${index + 1} · ${site.similarity_percent}% MATCH`;
-          const markerColor =
-            site.similarity_percent >= 80 ? '#48bb78' : site.similarity_percent >= 65 ? '#4299e1' : '#ed8936';
-
-          return (
-            <SiteMarker3D
-              key={site.earth_id}
-              lat={site.latitude}
-              lon={site.longitude}
-              radius={cfg.radius}
-              title={site.name}
-              subtitle={`${topExp?.name ?? 'Analogue'}: ${topExp?.suitability ?? 'Evaluated'}`}
-              badge={badgeText}
-              selected={selectedAnalog?.earth_id === site.earth_id}
-              color={markerColor}
-              onClick={() => onSelectAnalog && onSelectAnalog(site)}
-            />
-          );
-        })}
+        analogSites.map((site, index) => (
+          <SiteMarker3D
+            key={site.earth_id}
+            lat={site.latitude}
+            lon={site.longitude}
+            radius={cfg.radius}
+            title={site.name}
+            subtitle={`${site.similarity_percent}% SIMILARITY`}
+            badge={`#${index + 1} ANALOG`}
+            selected={selectedAnalog?.earth_id === site.earth_id}
+            color={selectedAnalog?.earth_id === site.earth_id ? '#ffffff' : '#0b3d91'}
+            onClick={() => onSelectAnalog && onSelectAnalog(site)}
+          />
+        ))}
 
       <OrbitControls
         ref={orbitRef}
         enablePan={false}
-        minDistance={3.5}
+        minDistance={3.2}
         maxDistance={12}
         enableDamping
         dampingFactor={0.06}
         autoRotate={autoRotate}
-        autoRotateSpeed={0.35}
+        autoRotateSpeed={0.3}
         onStart={() => {
           targetVec.current = null;
         }}
@@ -325,44 +324,54 @@ export function PlanetGlobe(props: PlanetGlobeProps) {
   const cfg = BODY_CONFIG[props.body];
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', background: '#05080f' }}>
-      {/* Top HUD Overlay */}
+    <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000000' }}>
+      {/* Top HUD Telemetry Coordinates */}
       <div
         style={{
           position: 'absolute',
-          top: 16,
-          left: 20,
+          top: 14,
+          left: 18,
           zIndex: 10,
           pointerEvents: 'none',
           display: 'flex',
           flexDirection: 'column',
-          gap: 4,
+          gap: 2,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span
             style={{
-              width: 8,
-              height: 8,
+              width: 7,
+              height: 7,
               borderRadius: '50%',
-              background: props.body === 'earth' ? '#48bb78' : props.body === 'moon' ? '#ecc94b' : '#f56565',
-              boxShadow: `0 0 10px ${props.body === 'earth' ? '#48bb78' : props.body === 'moon' ? '#ecc94b' : '#f56565'}`,
+              background: '#0b3d91',
+              boxShadow: '0 0 8px #3b82f6',
             }}
           />
-          <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.14em', color: '#e2e8f0' }}>
-            {cfg.name} · 3D ORBITAL VIEW
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '0.12em',
+              color: '#ffffff',
+              fontFamily: 'monospace, sans-serif',
+            }}
+          >
+            {cfg.name} // 3D SATELLITE
           </span>
         </div>
-        <div style={{ fontSize: '10px', color: '#718096', letterSpacing: '0.06em' }}>{cfg.sub}</div>
+        <div style={{ fontSize: '9px', color: '#94a3b8', letterSpacing: '0.06em', fontFamily: 'monospace' }}>
+          {cfg.sub}
+        </div>
       </div>
 
-      {/* Bottom Controls */}
+      {/* Bottom Camera Reset Bar */}
       <div
         style={{
           position: 'absolute',
-          bottom: 16,
-          left: 20,
-          right: 20,
+          bottom: 14,
+          left: 18,
+          right: 18,
           zIndex: 10,
           display: 'flex',
           justifyContent: 'space-between',
@@ -370,12 +379,21 @@ export function PlanetGlobe(props: PlanetGlobeProps) {
           pointerEvents: 'none',
         }}
       >
-        <div style={{ fontSize: '10px', color: '#a0aec0', letterSpacing: '0.08em', display: 'flex', gap: 14 }}>
+        <div
+          style={{
+            fontSize: '9px',
+            color: '#64748b',
+            letterSpacing: '0.08em',
+            display: 'flex',
+            gap: 12,
+            fontFamily: 'monospace',
+          }}
+        >
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Compass size={12} color="#63b3ed" /> DRAG TO ROTATE
+            <Compass size={11} color="#0b3d91" /> DRAG ROTATE
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Eye size={12} color="#63b3ed" /> SCROLL TO ZOOM
+            <Eye size={11} color="#0b3d91" /> SCROLL ZOOM
           </span>
         </div>
         <button
@@ -385,29 +403,33 @@ export function PlanetGlobe(props: PlanetGlobeProps) {
           }}
           style={{
             pointerEvents: 'auto',
-            background: 'rgba(26, 36, 51, 0.85)',
-            border: '1px solid #2d3748',
-            borderRadius: 6,
-            color: '#e2e8f0',
-            fontSize: '11px',
-            padding: '6px 12px',
+            background: 'rgba(0, 0, 0, 0.85)',
+            border: '1px solid #1e293b',
+            borderRadius: 4,
+            color: '#ffffff',
+            fontSize: '10px',
+            padding: '5px 10px',
             display: 'flex',
             alignItems: 'center',
-            gap: 6,
+            gap: 5,
             cursor: 'pointer',
-            backdropFilter: 'blur(8px)',
+            fontFamily: 'monospace',
           }}
         >
-          <RotateCcw size={12} /> RESET CAMERA
+          <RotateCcw size={11} /> RESET CAMERA
         </button>
       </div>
 
-      {/* Canvas */}
       <Canvas
         onCreated={() => setReady(true)}
         camera={{ position: [0, 0, cfg.cameraDist], fov: 42 }}
-        dpr={[1, 1.8]}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        dpr={[1, 2]}
+        gl={{
+          antialias: true,
+          powerPreference: 'high-performance',
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.15,
+        }}
       >
         <Suspense fallback={null}>
           <Scene {...props} />

@@ -5,7 +5,7 @@ import {
   Activity,
   RefreshCw,
   ArrowLeft,
-  Beaker,
+  ChevronRight,
 } from 'lucide-react';
 import { PlanetGlobe } from './components/globe/PlanetGlobe';
 import {
@@ -21,33 +21,26 @@ import type {
 } from './types/scientific';
 
 export function ObservatoryApp() {
-  // Navigation & State
   const [activeBody, setActiveBody] = useState<'moon' | 'mars' | 'earth'>('moon');
   const [selectedTarget, setSelectedTarget] = useState<PlanetaryBody>('moon');
   const [references, setReferences] = useState<PlanetaryReferenceSite[]>([]);
   const [selectedReference, setSelectedReference] = useState<PlanetaryReferenceSite | null>(null);
 
-  // Earth Analog Matching State
   const [analogResults, setAnalogResults] = useState<AnalogMatchResult[]>([]);
   const [selectedAnalog, setSelectedAnalog] = useState<AnalogMatchResult | null>(null);
   const [selectedExperimentFilter, setSelectedExperimentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Live DEM Interrogation State
   const [liveDemLoading, setLiveDemLoading] = useState(false);
   const [liveDemData, setLiveDemData] = useState<LiveDEMResponse | null>(null);
   const [liveDemError, setLiveDemError] = useState<string | null>(null);
 
-  // General Loading & Camera Controls
-  const [loading, setLoading] = useState(false);
-  void loading;
   const [resetSignal, setResetSignal] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
 
   // Load verified references on body switch
   useEffect(() => {
     let active = true;
-    setLoading(true);
     fetchPlanetaryReferences(selectedTarget)
       .then((data) => {
         if (!active) return;
@@ -56,17 +49,14 @@ export function ObservatoryApp() {
           setSelectedReference(data[0]);
         }
       })
-      .catch((err) => console.error(err))
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+      .catch((err) => console.error(err));
 
     return () => {
       active = false;
     };
   }, [selectedTarget]);
 
-  // When selected reference changes, compute Earth analog candidates
+  // Compute Earth analog candidates when reference changes
   useEffect(() => {
     if (!selectedReference) return;
     let active = true;
@@ -86,7 +76,6 @@ export function ObservatoryApp() {
     };
   }, [selectedReference]);
 
-  // Handle switching target between Moon and Mars
   const handleSelectPlanet = (planet: PlanetaryBody) => {
     setSelectedTarget(planet);
     setActiveBody(planet);
@@ -96,19 +85,16 @@ export function ObservatoryApp() {
     setResetSignal((s) => s + 1);
   };
 
-  // Transition to Earth view
   const handleScanEarth = () => {
     setActiveBody('earth');
     setResetSignal((s) => s + 1);
   };
 
-  // Back to Moon/Mars
   const handleBackToPlanet = () => {
     setActiveBody(selectedTarget);
     setResetSignal((s) => s + 1);
   };
 
-  // Live DEM Query for selected Earth Analog
   const handleQueryLiveDEM = async (lat: number, lon: number) => {
     setLiveDemLoading(true);
     setLiveDemError(null);
@@ -122,7 +108,6 @@ export function ObservatoryApp() {
     }
   };
 
-  // Filtered Earth Analogs
   const filteredAnalogs = useMemo(() => {
     return analogResults.filter((site) => {
       const matchesSearch =
@@ -140,255 +125,246 @@ export function ObservatoryApp() {
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
+        position: 'relative',
         width: '100vw',
         height: '100vh',
-        background: '#05080f',
-        color: '#e2e8f0',
-        fontFamily: "'Space Grotesk', system-ui, sans-serif",
+        background: '#000000',
+        color: '#ffffff',
+        fontFamily: "'Space Grotesk', monospace, system-ui, sans-serif",
         overflow: 'hidden',
       }}
     >
-      {/* 1. TOP HEADER / NASA COMMAND BAR */}
+      {/* 1. TOP MINIMALIST NASA COMMAND HEADER */}
       <header
         style={{
-          height: 64,
-          background: 'rgba(9, 14, 24, 0.95)',
-          borderBottom: '1px solid #1a2536',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 52,
+          background: 'rgba(0, 0, 0, 0.92)',
+          borderBottom: '1px solid #111827',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 24px',
-          zIndex: 20,
-          backdropFilter: 'blur(12px)',
+          padding: '0 20px',
+          zIndex: 30,
+          backdropFilter: 'blur(10px)',
         }}
       >
         {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              background: 'linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)',
+              width: 28,
+              height: 28,
+              borderRadius: 4,
+              background: '#0b3d91', // Official NASA Blue
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 0 16px rgba(2, 132, 199, 0.5)',
             }}
           >
-            <Globe2 size={20} color="#ffffff" />
+            <Globe2 size={16} color="#ffffff" />
           </div>
           <div>
-            <div style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '0.12em', color: '#ffffff' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.14em', color: '#ffffff' }}>
               PLANETRIX
-            </div>
-            <div style={{ fontSize: '9px', letterSpacing: '0.18em', color: '#718096', fontWeight: 600 }}>
-              PLANETARY ANALOG MISSION OBSERVATORY
-            </div>
+            </span>
+            <span style={{ fontSize: '9px', color: '#94a3b8', letterSpacing: '0.1em', marginLeft: 8 }}>
+              NASA ANALOG MISSION OBSERVATORY
+            </span>
           </div>
         </div>
 
-        {/* Planet Navigation Tabs */}
+        {/* Planet Navigation Pill */}
         <div
           style={{
             display: 'flex',
-            background: 'rgba(17, 24, 39, 0.8)',
-            border: '1px solid #1f293d',
-            borderRadius: 8,
-            padding: 3,
-            gap: 4,
+            background: '#050914',
+            border: '1px solid #1e293b',
+            borderRadius: 6,
+            padding: 2,
+            gap: 2,
           }}
         >
           <button
             onClick={() => handleSelectPlanet('moon')}
             style={{
               border: 0,
-              background: activeBody === 'moon' ? '#253549' : 'transparent',
-              color: activeBody === 'moon' ? '#f6e05e' : '#a0aec0',
+              background: activeBody === 'moon' ? '#0b3d91' : 'transparent',
+              color: '#ffffff',
               fontWeight: 700,
-              fontSize: '11px',
-              padding: '7px 16px',
-              borderRadius: 6,
+              fontSize: '10px',
+              padding: '6px 14px',
+              borderRadius: 4,
               cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.2s ease',
+              letterSpacing: '0.08em',
             }}
           >
-            <span>☾</span> THE MOON
+            MOON
           </button>
           <button
             onClick={() => handleSelectPlanet('mars')}
             style={{
               border: 0,
-              background: activeBody === 'mars' ? '#3e241e' : 'transparent',
-              color: activeBody === 'mars' ? '#f56565' : '#a0aec0',
+              background: activeBody === 'mars' ? '#0b3d91' : 'transparent',
+              color: '#ffffff',
               fontWeight: 700,
-              fontSize: '11px',
-              padding: '7px 16px',
-              borderRadius: 6,
+              fontSize: '10px',
+              padding: '6px 14px',
+              borderRadius: 4,
               cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.2s ease',
+              letterSpacing: '0.08em',
             }}
           >
-            <span>♂</span> MARS
+            MARS
           </button>
           <button
             onClick={() => setActiveBody('earth')}
             style={{
               border: 0,
-              background: activeBody === 'earth' ? '#1c3d33' : 'transparent',
-              color: activeBody === 'earth' ? '#48bb78' : '#a0aec0',
+              background: activeBody === 'earth' ? '#0b3d91' : 'transparent',
+              color: '#ffffff',
               fontWeight: 700,
-              fontSize: '11px',
-              padding: '7px 16px',
-              borderRadius: 6,
+              fontSize: '10px',
+              padding: '6px 14px',
+              borderRadius: 4,
               cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.2s ease',
+              letterSpacing: '0.08em',
             }}
           >
-            <span>⊕</span> EARTH ANALOGS ({analogResults.length})
+            EARTH ANALOGS ({analogResults.length})
           </button>
         </div>
 
-        {/* Live Data Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '11px', color: '#a0aec0' }}>
+        {/* Live Telemetry Status */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '9px', color: '#94a3b8', fontFamily: 'monospace' }}>
           <span
             style={{
-              width: 8,
-              height: 8,
+              width: 6,
+              height: 6,
               borderRadius: '50%',
-              background: '#48bb78',
-              boxShadow: '0 0 10px #48bb78',
+              background: '#0b3d91',
+              boxShadow: '0 0 6px #0b3d91',
             }}
           />
-          <span style={{ letterSpacing: '0.06em', fontSize: '10px', color: '#cbd5e0' }}>
-            COPERNICUS DEM 90m · NASA LRO/MOLA LIVE
-          </span>
+          <span>NASA LRO / MOLA · COPERNICUS DEM 90M</span>
         </div>
       </header>
 
-      {/* 2. MAIN BODY (LEFT 3D GLOBE + RIGHT SCIENTIFIC MISSION SIDEBAR) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 440px', flex: 1, minHeight: 0 }}>
-        {/* LEFT VIEWPORT: 3D CELESTIAL STAGE */}
-        <div style={{ position: 'relative', overflow: 'hidden' }}>
-          <PlanetGlobe
-            body={activeBody}
-            referenceSites={references}
-            selectedReference={selectedReference}
-            onSelectReference={(site) => {
-              setSelectedReference(site);
-            }}
-            analogSites={filteredAnalogs}
-            selectedAnalog={selectedAnalog}
-            onSelectAnalog={(site) => {
-              setSelectedAnalog(site);
-              setLiveDemData(null);
-            }}
-            onSelectCoordinate={(lat, lon) => {
-              if (activeBody === 'earth') {
-                handleQueryLiveDEM(lat, lon);
-              }
-            }}
-            resetSignal={resetSignal}
-            autoRotate={autoRotate}
-          />
+      {/* 2. FULL-VIEWPORT 3D CELESTIAL STAGE */}
+      <div style={{ width: '100%', height: '100%', paddingTop: 52, position: 'relative' }}>
+        <PlanetGlobe
+          body={activeBody}
+          referenceSites={references}
+          selectedReference={selectedReference}
+          onSelectReference={(site) => setSelectedReference(site)}
+          analogSites={filteredAnalogs}
+          selectedAnalog={selectedAnalog}
+          onSelectAnalog={(site) => {
+            setSelectedAnalog(site);
+            setLiveDemData(null);
+          }}
+          onSelectCoordinate={(lat, lon) => {
+            if (activeBody === 'earth') {
+              handleQueryLiveDEM(lat, lon);
+            }
+          }}
+          resetSignal={resetSignal}
+          autoRotate={autoRotate}
+        />
 
-          {/* Quick Floating Controls (Auto-Rotate & Status HUD) */}
+        {/* Floating Quick Controls (Top-Left) */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 66,
+            left: 20,
+            zIndex: 15,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+          }}
+        >
           <div
             style={{
-              position: 'absolute',
-              top: 70,
-              left: 20,
-              zIndex: 15,
+              background: 'rgba(0, 0, 0, 0.88)',
+              border: '1px solid #1e293b',
+              borderRadius: 4,
+              padding: '6px 10px',
+              fontSize: '10px',
+              fontFamily: 'monospace',
+              color: '#ffffff',
               display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
+              alignItems: 'center',
+              gap: 6,
             }}
           >
-            <div
-              style={{
-                background: 'rgba(10, 16, 26, 0.85)',
-                border: '1px solid #1a273b',
-                borderRadius: 8,
-                padding: '8px 12px',
-                fontSize: '11px',
-                backdropFilter: 'blur(8px)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <Activity size={14} color="#63b3ed" />
-              <span>
-                {activeBody === 'earth'
-                  ? `Comparing against: ${selectedReference?.name ?? 'Selected Reference'}`
-                  : `Select a planetary mission site or inspect coordinates`}
-              </span>
-            </div>
-
-            <button
-              onClick={() => setAutoRotate(!autoRotate)}
-              style={{
-                background: 'rgba(10, 16, 26, 0.85)',
-                border: '1px solid #1a273b',
-                borderRadius: 6,
-                color: autoRotate ? '#63b3ed' : '#718096',
-                padding: '6px 10px',
-                fontSize: '10px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                alignSelf: 'flex-start',
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              <RefreshCw size={11} className={autoRotate ? 'spin' : ''} />
-              {autoRotate ? 'AUTO-ORBIT: ON' : 'AUTO-ORBIT: OFF'}
-            </button>
+            <Activity size={12} color="#0b3d91" />
+            <span>
+              {activeBody === 'earth'
+                ? `REF: ${selectedReference?.name ?? 'Target'}`
+                : `SELECT SURFACE SITE OR CLICK COORDINATES`}
+            </span>
           </div>
+
+          <button
+            onClick={() => setAutoRotate(!autoRotate)}
+            style={{
+              background: 'rgba(0, 0, 0, 0.88)',
+              border: '1px solid #1e293b',
+              borderRadius: 4,
+              color: autoRotate ? '#ffffff' : '#64748b',
+              padding: '4px 8px',
+              fontSize: '9px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              alignSelf: 'flex-start',
+              fontFamily: 'monospace',
+            }}
+          >
+            <RefreshCw size={10} className={autoRotate ? 'spin' : ''} />
+            {autoRotate ? 'ORBIT: ON' : 'ORBIT: OFF'}
+          </button>
         </div>
 
-        {/* RIGHT SIDEBAR: MISSION CONTROL & EXPERIMENT ANALYTICS */}
+        {/* 3. FLOATING TELEMETRY DRAWER (SLIM, COMPACT, NASA BLUE & WHITE) */}
         <aside
           style={{
-            background: 'rgba(11, 17, 28, 0.98)',
-            borderLeft: '1px solid #1a273b',
+            position: 'absolute',
+            top: 66,
+            right: 20,
+            bottom: 20,
+            width: 360,
+            background: 'rgba(2, 4, 10, 0.92)',
+            border: '1px solid #1a2942',
+            borderRadius: 8,
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            zIndex: 10,
+            zIndex: 20,
+            backdropFilter: 'blur(16px)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
           }}
         >
-          {/* SIDEBAR MODE A: MOON / MARS SITE SELECTION */}
+          {/* MODE A: MOON / MARS SITE SELECTOR */}
           {activeBody !== 'earth' && (
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <div style={{ padding: '20px 22px 14px', borderBottom: '1px solid #1a273b' }}>
-                <div style={{ fontSize: '10px', fontWeight: 800, color: '#63b3ed', letterSpacing: '0.14em' }}>
-                  STEP 1 / PLANETARY SELECTION
+              <div style={{ padding: '12px 14px 8px', borderBottom: '1px solid #111827' }}>
+                <div style={{ fontSize: '9px', fontWeight: 800, color: '#3b82f6', letterSpacing: '0.12em' }}>
+                  STEP 1 // SELECT PLANETARY SITE
                 </div>
-                <h2 style={{ fontSize: '20px', margin: '6px 0 4px', fontWeight: 700, color: '#f7fafc' }}>
-                  {activeBody === 'moon' ? 'Lunar Mission Sites' : 'Martian Surface Regions'}
-                </h2>
-                <p style={{ fontSize: '12px', color: '#a0aec0', margin: 0, lineHeight: 1.5 }}>
-                  Choose a documented NASA landing site with validated LRO LOLA / MOLA topography to search for Earth
-                  analogs.
-                </p>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', margin: '3px 0' }}>
+                  {activeBody === 'moon' ? 'Lunar Reference Locations' : 'Martian Surface Regions'}
+                </div>
               </div>
 
-              {/* Reference Sites List */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* Compact Site List */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {references.map((site) => {
                   const isSelected = selectedReference?.id === site.id;
                   return (
@@ -396,154 +372,126 @@ export function ObservatoryApp() {
                       key={site.id}
                       onClick={() => setSelectedReference(site)}
                       style={{
-                        background: isSelected ? 'rgba(29, 44, 66, 0.9)' : 'rgba(15, 23, 38, 0.7)',
-                        border: `1px solid ${isSelected ? (activeBody === 'moon' ? '#f6e05e' : '#f56565') : '#1e293b'}`,
-                        borderRadius: 8,
-                        padding: '14px 16px',
+                        background: isSelected ? 'rgba(11, 61, 145, 0.28)' : 'rgba(0, 0, 0, 0.6)',
+                        border: `1px solid ${isSelected ? '#0b3d91' : '#1e293b'}`,
+                        borderRadius: 6,
+                        padding: '8px 10px',
                         cursor: 'pointer',
-                        transition: 'all 0.18s ease',
+                        transition: 'all 0.15s ease',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>{site.name}</div>
-                        <span
-                          style={{
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            padding: '2px 6px',
-                            borderRadius: 4,
-                            background: isSelected ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255,255,255,0.05)',
-                            color: activeBody === 'moon' ? '#f6e05e' : '#f56565',
-                          }}
-                        >
-                          {site.crs}
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>{site.name}</span>
+                        <span style={{ fontSize: '8px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                          {site.latitude.toFixed(2)}°, {site.longitude.toFixed(2)}°
                         </span>
                       </div>
 
-                      <div style={{ fontSize: '11px', color: '#718096', margin: '6px 0 10px' }}>
-                        {site.latitude.toFixed(3)}°{site.latitude >= 0 ? 'N' : 'S'} · {site.longitude.toFixed(3)}°
-                        {site.longitude >= 0 ? 'E' : 'W'}
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: '11px' }}>
-                        <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 4 }}>
-                          <span style={{ color: '#a0aec0', fontSize: '9px', display: 'block' }}>SURFACE SLOPE</span>
-                          <strong style={{ color: '#e2e8f0' }}>{site.features.slope_deg.value}°</strong>
-                        </div>
-                        <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 4 }}>
-                          <span style={{ color: '#a0aec0', fontSize: '9px', display: 'block' }}>ROUGHNESS</span>
-                          <strong style={{ color: '#e2e8f0' }}>{site.features.residual_roughness_m.value} m</strong>
-                        </div>
-                      </div>
-
-                      <div style={{ fontSize: '11px', color: '#a0aec0', marginTop: 10, lineHeight: 1.4 }}>
-                        {site.quality_note}
+                      <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: '9px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                        <span>SLOPE: <strong style={{ color: '#ffffff' }}>{site.features.slope_deg.value}°</strong></span>
+                        <span>ROUGHNESS: <strong style={{ color: '#ffffff' }}>{site.features.residual_roughness_m.value}m</strong></span>
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Action: Scan Earth Analogs */}
-              <div style={{ padding: '16px 20px', borderTop: '1px solid #1a273b', background: 'rgba(9, 14, 24, 0.95)' }}>
+              {/* Action Button: Scan Earth */}
+              <div style={{ padding: '10px 12px', borderTop: '1px solid #111827', background: '#02040a' }}>
                 <button
                   disabled={!selectedReference}
                   onClick={handleScanEarth}
                   style={{
                     width: '100%',
-                    background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                    border: 0,
-                    borderRadius: 8,
+                    background: '#0b3d91', // Pure NASA Blue
+                    border: '1px solid #1d4ed8',
+                    borderRadius: 5,
                     color: '#ffffff',
-                    fontWeight: 800,
-                    fontSize: '13px',
-                    padding: '13px 18px',
+                    fontWeight: 700,
+                    fontSize: '11px',
+                    padding: '9px 12px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 8,
-                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)',
-                    letterSpacing: '0.06em',
+                    gap: 6,
+                    letterSpacing: '0.08em',
                   }}
                 >
-                  <Globe2 size={16} /> SEARCH & SCAN EARTH ANALOGS ➔
+                  SCAN EARTH ANALOGS <ChevronRight size={14} />
                 </button>
               </div>
             </div>
           )}
 
-          {/* SIDEBAR MODE B: EARTH ANALOG MATCHES & 5-DOMAIN MISSION EXPERIMENTS */}
+          {/* MODE B: EARTH ANALOG MATCHES & COMPACT EXPERIMENT MATRIX */}
           {activeBody === 'earth' && (
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              {/* Header with Reference Context */}
-              <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid #1a273b' }}>
+              {/* Header Context */}
+              <div style={{ padding: '10px 12px 8px', borderBottom: '1px solid #111827' }}>
                 <button
                   onClick={handleBackToPlanet}
                   style={{
                     background: 'none',
                     border: 0,
-                    color: '#63b3ed',
-                    fontSize: '11px',
+                    color: '#3b82f6',
+                    fontSize: '10px',
                     fontWeight: 700,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4,
                     cursor: 'pointer',
                     padding: 0,
-                    marginBottom: 8,
+                    marginBottom: 6,
                   }}
                 >
-                  <ArrowLeft size={13} /> BACK TO {selectedTarget.toUpperCase()} SELECTION
+                  <ArrowLeft size={11} /> BACK TO {selectedTarget.toUpperCase()}
                 </button>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <h2 style={{ fontSize: '18px', margin: 0, fontWeight: 700, color: '#f7fafc' }}>Earth Analogs</h2>
-                  <span style={{ fontSize: '11px', color: '#48bb78', fontWeight: 700 }}>
-                    {filteredAnalogs.length} SITES FOUND
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>Earth Analog Sites</span>
+                  <span style={{ fontSize: '10px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                    {filteredAnalogs.length} MATCHES
                   </span>
                 </div>
-                <div style={{ fontSize: '11px', color: '#a0aec0', marginTop: 4 }}>
-                  Matching against: <strong style={{ color: '#edf2f7' }}>{selectedReference?.name}</strong>
-                </div>
 
-                {/* Search Box */}
+                {/* Compact Search Box */}
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    background: 'rgba(15, 23, 42, 0.9)',
+                    background: '#040712',
                     border: '1px solid #1e293b',
-                    borderRadius: 6,
-                    padding: '7px 10px',
-                    marginTop: 10,
-                    gap: 8,
+                    borderRadius: 4,
+                    padding: '4px 8px',
+                    marginTop: 6,
+                    gap: 6,
                   }}
                 >
-                  <Search size={14} color="#718096" />
+                  <Search size={12} color="#64748b" />
                   <input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search analog by name or environment..."
+                    placeholder="Search site or region..."
                     style={{
                       background: 'transparent',
                       border: 0,
                       outline: 'none',
                       color: '#ffffff',
-                      fontSize: '12px',
+                      fontSize: '11px',
                       width: '100%',
                     }}
                   />
                 </div>
 
-                {/* Experiment Filter Chips */}
-                <div style={{ display: 'flex', gap: 6, marginTop: 10, overflowX: 'auto', paddingBottom: 4 }}>
+                {/* Compact Filter Pills */}
+                <div style={{ display: 'flex', gap: 4, marginTop: 6, overflowX: 'auto', paddingBottom: 2 }}>
                   {[
-                    { id: 'all', label: 'All Experiments' },
+                    { id: 'all', label: 'All' },
                     { id: 'habitat_construction', label: 'Habitat' },
-                    { id: 'rover_movements', label: 'Rover Mobility' },
-                    { id: 'resource_extraction', label: 'ISRU Extraction' },
-                    { id: 'life_detection', label: 'Life Detection' },
-                    { id: 'subsurface_exploration', label: 'Drilling/GPR' },
+                    { id: 'rover_movements', label: 'Rover' },
+                    { id: 'resource_extraction', label: 'ISRU' },
+                    { id: 'life_detection', label: 'Life' },
+                    { id: 'subsurface_exploration', label: 'Drill' },
                   ].map((filter) => {
                     const active = selectedExperimentFilter === filter.id;
                     return (
@@ -551,13 +499,13 @@ export function ObservatoryApp() {
                         key={filter.id}
                         onClick={() => setSelectedExperimentFilter(filter.id)}
                         style={{
-                          background: active ? '#253549' : 'rgba(15, 23, 42, 0.7)',
-                          border: `1px solid ${active ? '#63b3ed' : '#1e293b'}`,
-                          color: active ? '#63b3ed' : '#a0aec0',
-                          fontSize: '10px',
+                          background: active ? '#0b3d91' : 'transparent',
+                          border: `1px solid ${active ? '#3b82f6' : '#1e293b'}`,
+                          color: '#ffffff',
+                          fontSize: '9px',
                           fontWeight: 700,
-                          padding: '4px 8px',
-                          borderRadius: 4,
+                          padding: '2px 6px',
+                          borderRadius: 3,
                           cursor: 'pointer',
                           whiteSpace: 'nowrap',
                         }}
@@ -569,231 +517,180 @@ export function ObservatoryApp() {
                 </div>
               </div>
 
-              {/* Scrollable List of Candidates & Deep Inspector */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '12px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {/* Selected Analog Deep Inspector Card */}
+              {/* Compact Body / Scrollable Inspector */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {/* Selected Analog Details (Decreased Card Size) */}
                 {selectedAnalog && (
                   <div
                     style={{
-                      background: 'rgba(16, 26, 44, 0.95)',
-                      border: '1px solid #2b4365',
-                      borderRadius: 10,
-                      padding: '16px',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                      background: 'rgba(4, 8, 18, 0.96)',
+                      border: '1px solid #0b3d91',
+                      borderRadius: 6,
+                      padding: '10px 12px',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div>
-                        <span
-                          style={{
-                            fontSize: '9px',
-                            fontWeight: 800,
-                            letterSpacing: '0.1em',
-                            color: '#48bb78',
-                            background: 'rgba(72, 187, 120, 0.15)',
-                            padding: '2px 6px',
-                            borderRadius: 4,
-                          }}
-                        >
-                          TOP ANALOGUE MATCH
-                        </span>
-                        <h3 style={{ fontSize: '16px', margin: '6px 0 2px', fontWeight: 800, color: '#ffffff' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
                           {selectedAnalog.name}
-                        </h3>
-                        <div style={{ fontSize: '11px', color: '#a0aec0' }}>
-                          {selectedAnalog.latitude.toFixed(3)}°N, {selectedAnalog.longitude.toFixed(3)}°E
+                        </div>
+                        <div style={{ fontSize: '9px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                          {selectedAnalog.latitude.toFixed(2)}°N, {selectedAnalog.longitude.toFixed(2)}°E
                         </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '20px', fontWeight: 800, color: '#48bb78' }}>
-                          {selectedAnalog.similarity_percent}%
-                        </div>
-                        <span style={{ fontSize: '9px', color: '#718096' }}>SIMILARITY</span>
+                      <div
+                        style={{
+                          background: '#0b3d91',
+                          borderRadius: 4,
+                          padding: '2px 6px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          color: '#ffffff',
+                          fontFamily: 'monospace',
+                        }}
+                      >
+                        {selectedAnalog.similarity_percent}%
                       </div>
                     </div>
 
-                    <div style={{ fontSize: '11px', color: '#cbd5e0', margin: '12px 0', lineHeight: 1.5 }}>
+                    <div style={{ fontSize: '10px', color: '#cbd5e1', margin: '6px 0', lineHeight: 1.4 }}>
                       {selectedAnalog.environment_summary}
                     </div>
 
-                    {/* Physical Terrain Stencil Metrics */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, margin: '12px 0' }}>
-                      <div style={{ background: 'rgba(0,0,0,0.3)', padding: '8px 10px', borderRadius: 6 }}>
-                        <span style={{ fontSize: '9px', color: '#718096', display: 'block' }}>SLOPE (DEM 90m)</span>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                          <strong style={{ fontSize: '14px', color: '#ffffff' }}>
-                            {selectedAnalog.features.slope_deg}°
-                          </strong>
-                          <span style={{ fontSize: '10px', color: '#a0aec0' }}>
-                            (Δ {selectedAnalog.differences.slope_delta_deg}°)
-                          </span>
-                        </div>
+                    {/* Compact Physical Slope & Roughness */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, margin: '6px 0' }}>
+                      <div style={{ background: '#02040a', border: '1px solid #1e293b', padding: '5px 7px', borderRadius: 4 }}>
+                        <span style={{ fontSize: '8px', color: '#64748b', display: 'block', fontFamily: 'monospace' }}>
+                          SLOPE (DEM 90M)
+                        </span>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
+                          {selectedAnalog.features.slope_deg}° (Δ{selectedAnalog.differences.slope_delta_deg}°)
+                        </span>
                       </div>
-                      <div style={{ background: 'rgba(0,0,0,0.3)', padding: '8px 10px', borderRadius: 6 }}>
-                        <span style={{ fontSize: '9px', color: '#718096', display: 'block' }}>RESIDUAL ROUGHNESS</span>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                          <strong style={{ fontSize: '14px', color: '#ffffff' }}>
-                            {selectedAnalog.features.residual_roughness_m} m
-                          </strong>
-                          <span style={{ fontSize: '10px', color: '#a0aec0' }}>
-                            (Δ {selectedAnalog.differences.roughness_delta_m}m)
-                          </span>
-                        </div>
+                      <div style={{ background: '#02040a', border: '1px solid #1e293b', padding: '5px 7px', borderRadius: 4 }}>
+                        <span style={{ fontSize: '8px', color: '#64748b', display: 'block', fontFamily: 'monospace' }}>
+                          ROUGHNESS
+                        </span>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
+                          {selectedAnalog.features.residual_roughness_m}m (Δ{selectedAnalog.differences.roughness_delta_m}m)
+                        </span>
                       </div>
                     </div>
 
-                    {/* Live Copernicus DEM Interrogation Button */}
+                    {/* Query Live DEM Button */}
                     <button
                       onClick={() => handleQueryLiveDEM(selectedAnalog.latitude, selectedAnalog.longitude)}
                       disabled={liveDemLoading}
                       style={{
                         width: '100%',
-                        background: 'rgba(43, 108, 176, 0.25)',
-                        border: '1px solid #3182ce',
-                        borderRadius: 6,
-                        color: '#63b3ed',
-                        fontSize: '11px',
+                        background: 'transparent',
+                        border: '1px solid #0b3d91',
+                        borderRadius: 4,
+                        color: '#ffffff',
+                        fontSize: '9px',
                         fontWeight: 700,
-                        padding: '8px',
+                        padding: '5px',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 6,
-                        marginTop: 4,
-                        marginBottom: 12,
+                        gap: 5,
+                        margin: '6px 0',
+                        fontFamily: 'monospace',
                       }}
                     >
-                      <RefreshCw size={12} className={liveDemLoading ? 'spin' : ''} />
-                      {liveDemLoading
-                        ? 'QUERYING LIVE COPERNICUS DEM...'
-                        : 'QUERY LIVE COPERNICUS 90m ELEVATION STENCIL'}
+                      <RefreshCw size={10} className={liveDemLoading ? 'spin' : ''} />
+                      {liveDemLoading ? 'QUERYING LIVE COPERNICUS DEM...' : 'QUERY LIVE COPERNICUS 90m ELEVATION'}
                     </button>
 
-                    {/* Live DEM Data Card if fetched */}
                     {liveDemData && (
                       <div
                         style={{
-                          background: 'rgba(10, 20, 35, 0.9)',
-                          border: '1px solid #2b6cb0',
-                          borderRadius: 6,
-                          padding: '10px',
-                          marginBottom: 14,
-                          fontSize: '11px',
+                          background: '#02040a',
+                          border: '1px solid #0b3d91',
+                          borderRadius: 4,
+                          padding: '6px 8px',
+                          fontSize: '9px',
+                          fontFamily: 'monospace',
+                          marginBottom: 8,
+                          color: '#ffffff',
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#48bb78', fontWeight: 700 }}>
-                          <span>✓ LIVE COPERNICUS DEM CONFIRMED</span>
-                          <span>{liveDemData.center_elevation_m} m ELEVATION</span>
-                        </div>
-                        <div style={{ fontSize: '10px', color: '#a0aec0', marginTop: 4 }}>
-                          3x3 Local Stencil Elevations: {liveDemData.elevation_stencil_m.slice(0, 5).join('m, ')}m...
-                        </div>
+                        ✓ LIVE DEM ELEVATION: {liveDemData.center_elevation_m}m
                       </div>
                     )}
                     {liveDemError && (
-                      <div style={{ color: '#fc8181', fontSize: '10px', marginBottom: 10 }}>{liveDemError}</div>
+                      <div style={{ color: '#ffffff', fontSize: '9px', marginBottom: 6 }}>{liveDemError}</div>
                     )}
 
-                    {/* 5-DOMAIN MISSION EXPERIMENT SUITABILITY MATRIX */}
-                    <div style={{ borderTop: '1px solid #2d3748', paddingTop: 12 }}>
-                      <div
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          letterSpacing: '0.08em',
-                          color: '#e2e8f0',
-                          marginBottom: 10,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6,
-                        }}
-                      >
-                        <Beaker size={13} color="#63b3ed" /> MISSION EXPERIMENT SUITABILITY MATRIX
+                    {/* 5-Domain Mission Experiment Suitability Matrix (Compact NASA Blue / White Rows) */}
+                    <div style={{ borderTop: '1px solid #1e293b', paddingTop: 8 }}>
+                      <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', marginBottom: 6 }}>
+                        MISSION EXPERIMENT SUITABILITY
                       </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        {selectedAnalog.experiments.map((exp) => {
-                          const isHigh = exp.suitability === 'High';
-                          const isMod = exp.suitability === 'Moderate';
-                          const statusColor = isHigh ? '#48bb78' : isMod ? '#ecc94b' : '#a0aec0';
-
-                          return (
-                            <div
-                              key={exp.id}
-                              style={{
-                                background: 'rgba(0,0,0,0.25)',
-                                border: `1px solid ${isHigh ? 'rgba(72, 187, 120, 0.3)' : 'rgba(255,255,255,0.06)'}`,
-                                borderRadius: 6,
-                                padding: '10px 12px',
-                              }}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ fontSize: '12px', fontWeight: 700, color: '#f7fafc' }}>{exp.name}</div>
-                                <span
-                                  style={{
-                                    fontSize: '9px',
-                                    fontWeight: 800,
-                                    padding: '2px 6px',
-                                    borderRadius: 4,
-                                    background: isHigh
-                                      ? 'rgba(72, 187, 120, 0.2)'
-                                      : isMod
-                                      ? 'rgba(236, 201, 75, 0.2)'
-                                      : 'rgba(160, 174, 192, 0.1)',
-                                    color: statusColor,
-                                  }}
-                                >
-                                  {exp.suitability.toUpperCase()} ({exp.readiness_score}%)
-                                </span>
-                              </div>
-
-                              {/* Progress bar */}
-                              <div
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {selectedAnalog.experiments.map((exp) => (
+                          <div
+                            key={exp.id}
+                            style={{
+                              background: '#02040a',
+                              border: '1px solid #111827',
+                              borderRadius: 4,
+                              padding: '6px 8px',
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '10px', fontWeight: 700, color: '#ffffff' }}>
+                                {exp.name}
+                              </span>
+                              <span
                                 style={{
-                                  height: 4,
-                                  background: 'rgba(255,255,255,0.08)',
+                                  fontSize: '8px',
+                                  fontWeight: 800,
+                                  padding: '1px 4px',
                                   borderRadius: 2,
-                                  margin: '7px 0',
-                                  overflow: 'hidden',
+                                  background: '#0b3d91',
+                                  color: '#ffffff',
+                                  fontFamily: 'monospace',
                                 }}
                               >
-                                <div
-                                  style={{
-                                    width: `${exp.readiness_score}%`,
-                                    height: '100%',
-                                    background: statusColor,
-                                    borderRadius: 2,
-                                  }}
-                                />
-                              </div>
-
-                              <p style={{ fontSize: '11px', color: '#a0aec0', margin: '4px 0 6px', lineHeight: 1.4 }}>
-                                {exp.scientific_rationale}
-                              </p>
-
-                              {/* Key Experiments Bullet Points */}
-                              <div style={{ fontSize: '10px', color: '#cbd5e0' }}>
-                                <span style={{ color: '#718096', fontWeight: 700 }}>VERIFIED EXPERIMENTS:</span>
-                                <ul style={{ margin: '4px 0 0 16px', padding: 0, color: '#90cdf4' }}>
-                                  {exp.key_experiments.map((k, i) => (
-                                    <li key={i} style={{ marginBottom: 2 }}>
-                                      {k}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
+                                {exp.suitability.toUpperCase()} ({exp.readiness_score}%)
+                              </span>
                             </div>
-                          );
-                        })}
+
+                            {/* Slim NASA Blue Progress Line */}
+                            <div
+                              style={{
+                                height: 2,
+                                background: '#1e293b',
+                                borderRadius: 1,
+                                margin: '4px 0',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: `${exp.readiness_score}%`,
+                                  height: '100%',
+                                  background: '#0b3d91',
+                                }}
+                              />
+                            </div>
+
+                            <div style={{ fontSize: '9px', color: '#94a3b8', lineHeight: 1.3 }}>
+                              {exp.scientific_rationale}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Ranked List of Other Earth Analogs */}
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#718096', letterSpacing: '0.08em' }}>
-                  ALL RANKED TERRESTRIAL CANDIDATES
+                {/* Ranked List of Other Candidates (Compact) */}
+                <div style={{ fontSize: '9px', fontWeight: 800, color: '#64748b', letterSpacing: '0.1em' }}>
+                  CANDIDATES
                 </div>
 
                 {filteredAnalogs.map((item, index) => {
@@ -806,10 +703,10 @@ export function ObservatoryApp() {
                         setLiveDemData(null);
                       }}
                       style={{
-                        background: isSelected ? 'rgba(30, 58, 92, 0.6)' : 'rgba(15, 23, 42, 0.7)',
-                        border: `1px solid ${isSelected ? '#63b3ed' : '#1e293b'}`,
-                        borderRadius: 8,
-                        padding: '12px 14px',
+                        background: isSelected ? 'rgba(11, 61, 145, 0.25)' : 'rgba(0, 0, 0, 0.6)',
+                        border: `1px solid ${isSelected ? '#0b3d91' : '#1e293b'}`,
+                        borderRadius: 4,
+                        padding: '6px 8px',
                         cursor: 'pointer',
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -817,20 +714,26 @@ export function ObservatoryApp() {
                       }}
                     >
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#63b3ed' }}>#{index + 1}</span>
-                          <strong style={{ fontSize: '13px', color: '#ffffff' }}>{item.name}</strong>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
+                          #{index + 1} {item.name}
                         </div>
-                        <div style={{ fontSize: '10px', color: '#718096', marginTop: 3 }}>
+                        <div style={{ fontSize: '8px', color: '#64748b', fontFamily: 'monospace' }}>
                           Slope {item.features.slope_deg}° · Roughness {item.features.residual_roughness_m}m
                         </div>
                       </div>
 
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#48bb78' }}>
-                          {item.similarity_percent}%
-                        </div>
-                        <span style={{ fontSize: '9px', color: '#718096' }}>MATCH</span>
+                      <div
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          color: '#ffffff',
+                          background: '#0b3d91',
+                          padding: '1px 5px',
+                          borderRadius: 3,
+                          fontFamily: 'monospace',
+                        }}
+                      >
+                        {item.similarity_percent}%
                       </div>
                     </div>
                   );
