@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d16">
+  <title>PLANETREX — Planetary Analog Explorer</title>
+  <link rel="stylesheet" href="/explorer-assets/explorer.css">
+  <script src="/explorer-assets/explorer.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="mark">◉</div><div><strong>PLANETREX</strong><small>PLANETARY ANALOG EXPLORER</small></div></div>
+  <nav class="planet-tabs" aria-label="Planetary target">
+    <button id="moon-tab" class="tab" aria-pressed="true">Moon</button>
+    <button id="mars-tab" class="tab" aria-pressed="false">Mars</button>
+  </nav>
+  <div class="top-note"><span class="live-dot"></span> LOCAL SCIENTIFIC DATABASE</div>
+</header>
+<main class="layout">
+  <section class="viewer" aria-label="Planet explorer">
+    <div class="viewer-heading">
+      <div><div class="eyebrow" id="section-label">SELECT A LUNAR REGION</div><h1 id="page-heading">Explore the Moon</h1><p id="page-subtitle">Choose a landing site or click anywhere on the globe to investigate Earth counterparts.</p></div>
+      <button id="back-button" class="outline hidden">← Back to <span id="back-label">Moon</span></button>
+    </div>
+    <div class="globe-viewport" id="globe-viewport">
+      <canvas id="globe" width="480" height="480" role="img" aria-label="Interactive planetary globe; use the location list to select sites"></canvas>
+      <div class="globe-caption"><span class="live-dot"></span> <span id="globe-name">MOON</span> <span class="dim">· INTERACTIVE GLOBE</span></div>
+      <div class="coordinates" id="hover-coords">Drag to rotate · Scroll to zoom · Click a region</div>
+      <button class="reset-button" id="reset-camera" title="Reset globe rotation and zoom">Reset view ⤾</button>
+      <div class="asset-note" id="asset-note">Illustrative lunar imagery, not a science-grade surface map</div>
+    </div>
+    <div class="footnote"><span class="step" id="step-caption">01 / SELECT PLANETARY REGION</span><span id="reference-caption">Named mission sites are navigation markers, not scientific analog results.</span></div>
+  </section>
+  <aside class="sidebar">
+    <div class="sidebar-heading">
+      <div class="eyebrow" id="sidebar-eyebrow">DOCUMENTED LOCATIONS</div>
+      <h2 id="sidebar-heading">Moon landing sites</h2>
+      <p id="sidebar-description">Select a named site, or choose any other location by clicking the globe.</p>
+      <label class="search-label" for="region-search">Find a location</label>
+      <input id="region-search" type="search" placeholder="Search site or region…" autocomplete="off">
+    </div>
+    <div class="list-header"><span id="list-counter">Loading…</span><span id="result-kind">NAVIGATION</span></div>
+    <div id="region-list" class="region-list" aria-live="polite"><div class="empty">Loading sites…</div></div>
+    <div id="selection-panel" class="selection-panel">
+      <div class="eyebrow">HOW TO USE</div>
+      <p>Start on the Moon or Mars. Click a point to open the Earth view and inspect available scientific evidence.</p>
+    </div>
+  </aside>
+</main>
+</body>
+</html>

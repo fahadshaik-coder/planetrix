@@ -1,0 +1,8 @@
+import {PanelRightClose,Layers} from 'lucide-react';
+import type {DiscoveryResult,PlanetaryBody} from '../../types/scientific';
+import type {AnalogFiltersState} from '../../utils/analogs';
+import {AnalogFilters} from './AnalogFilters';
+import {AnalogListItem} from './AnalogListItem';
+import {EmptyState} from '../common/EmptyState';
+interface Props {target:PlanetaryBody;records:DiscoveryResult[];selectedId:string|null;onSelect:(id:string)=>void;filters:AnalogFiltersState;onFilters:(filters:AnalogFiltersState)=>void;onClose:()=>void;}
+export function AnalogSidebar({target,records,selectedId,onSelect,filters,onFilters,onClose}:Props){return <aside className="rank-sidebar" id="rankings"><div className="sidebar-head"><div><span className="eyebrow"><Layers size={13}/> LOCATION INTELLIGENCE</span><h2>{target==='moon'?'Lunar':'Martian'} analogs</h2><p>Earth locations / ranked comparison</p></div><button className="icon-button mobile-only" onClick={onClose} aria-label="Close rankings"><PanelRightClose size={19}/></button></div><AnalogFilters value={filters} onChange={onFilters}/><div className="list-head"><span>RANKED LOCATIONS</span><span>{records.length} RESULTS</span></div><div className="ranking-list">{records.length?records.map((r,i)=><AnalogListItem key={r.id} record={r} index={i} selected={selectedId===r.id} onClick={()=>onSelect(r.id)}/>):<EmptyState message="No locations match the current source and filters."/>}</div><footer className="sidebar-footer"><span className="live-dot"/> {records.length?'SELECT A LOCATION TO EXPLORE':'NO MATCHING RECORDS'} <span>·</span> EARTH</footer></aside>}

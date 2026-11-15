@@ -1,0 +1,4 @@
+import {MapPin,ArrowUpRight} from 'lucide-react';
+import type {DiscoveryResult} from '../../types/scientific';
+import {coverage,percent} from '../../utils/analogs';
+export function AnalogListItem({record,index,selected,onClick}:{record:DiscoveryResult;index:number;selected:boolean;onClick:()=>void}){return <button className={`analog-item ${selected?'active':''}`} onClick={onClick} aria-pressed={selected}><span className="rank-number">{String(index+1).padStart(2,'0')}</span><span className="rank-main"><span className="rank-name">{record.earth.name}<ArrowUpRight size={14}/></span><span className="rank-region"><MapPin size={11}/>{record.earth.region}</span><span className="rank-progress"><span style={{width:`${record.similarity.percent??0}%`}}/></span><span className="rank-coverage">DATA COVERAGE <b>{coverage(record.completeness.fraction)}</b></span></span><strong className="rank-score">{percent(record.similarity.percent)}</strong></button>}
