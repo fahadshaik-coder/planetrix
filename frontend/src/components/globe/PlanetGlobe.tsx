@@ -7,7 +7,7 @@ import { RotateCcw, Compass, Eye } from 'lucide-react';
 import { positionFromLatLon } from './geo';
 import type { PlanetaryBody, PlanetaryReferenceSite, AnalogMatchResult } from '../../types/scientific';
 
-interface PlanetGlobeProps {
+export interface PlanetGlobeProps {
   body: 'earth' | PlanetaryBody;
   referenceSites?: PlanetaryReferenceSite[];
   selectedReference?: PlanetaryReferenceSite | null;
@@ -18,58 +18,63 @@ interface PlanetGlobeProps {
   onSelectCoordinate?: (lat: number, lon: number) => void;
   resetSignal: number;
   autoRotate?: boolean;
+  headerBadge?: string;
+  subBadge?: string;
+  compactControls?: boolean;
 }
 
-// Photorealistic Planetary Configurations
+// Photorealistic Planetary Configurations with Natural NASA Colors
 const BODY_CONFIG = {
   earth: {
     name: 'EARTH',
-    sub: 'WGS 84 SATELLITE BASMAP',
+    sub: 'WGS 84 SATELLITE BASEMAP',
     texture: '/earth.jpg',
     color: '#ffffff',
-    roughness: 0.48,
-    metalness: 0.1,
-    bumpScale: 0.015,
-    atmosphereColor: '#60a5fa',
+    roughness: 0.65,
+    metalness: 0.05,
+    showGraticule: true,
+    atmosphereColor: '#38bdf8',
     atmosphereOpacity: 0.12,
     radius: 1.85,
-    cameraDist: 6.8,
+    cameraDist: 5.6,
   },
   moon: {
     name: 'THE MOON',
     sub: 'NASA LRO LOLA TOPOGRAPHY',
     texture: '/moon.jpg',
-    color: '#9e9e9e', // Authentic lunar albedo prevents blown-out white glare
-    roughness: 0.98,
+    color: '#ffffff',
+    roughness: 0.88,
     metalness: 0.0,
-    bumpScale: 0.035, // Authentic 3D crater and highland relief
+    showGraticule: false,
     atmosphereColor: '#000000',
-    atmosphereOpacity: 0.0, // Vacuum: no atmosphere on Moon
+    atmosphereOpacity: 0.0,
     radius: 1.85,
-    cameraDist: 6.8,
+    cameraDist: 5.6,
   },
   mars: {
     name: 'MARS',
     sub: 'NASA MOLA / VIKING MDIM',
     texture: '/mars.jpg',
-    color: '#d47b59', // Authentic rust-ochre Martian terrain
-    roughness: 0.92,
+    color: '#ffffff',
+    roughness: 0.82,
     metalness: 0.0,
-    bumpScale: 0.03, // Canyon and volcano relief
+    showGraticule: false,
     atmosphereColor: '#fb923c',
-    atmosphereOpacity: 0.04, // Very thin atmospheric dust haze
+    atmosphereOpacity: 0.04,
     radius: 1.85,
-    cameraDist: 6.8,
+    cameraDist: 5.6,
   },
 };
 
 function CelestialSphere({
   body,
   radius,
+  showGraticule,
   onClickCoords,
 }: {
   body: 'earth' | PlanetaryBody;
   radius: number;
+  showGraticule?: boolean;
   onClickCoords?: (lat: number, lon: number) => void;
 }) {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
@@ -120,20 +125,32 @@ function CelestialSphere({
 
   return (
     <group>
-      {/* High-Resolution Planetary Sphere with Realistic 3D Crater Relief */}
+      {/* High-Resolution Natural Celestial Sphere */}
       <mesh rotation={[0, Math.PI, 0]} onPointerDown={handlePointerDown}>
         <sphereGeometry args={[radius, 128, 96]} />
         <meshStandardMaterial
           map={texture ?? undefined}
-          bumpMap={texture ?? undefined}
-          bumpScale={cfg.bumpScale}
           color={cfg.color}
           roughness={cfg.roughness}
           metalness={cfg.metalness}
         />
       </mesh>
 
-      {/* Atmospheric Rim Glow (Rendered exclusively for bodies with an atmosphere) */}
+      {/* Subtle Graticule Grid Lines (Rendered for Earth like in reference screenshot) */}
+      {showGraticule && (
+        <mesh rotation={[0, Math.PI, 0]}>
+          <sphereGeometry args={[radius * 1.0008, 36, 18]} />
+          <meshBasicMaterial
+            color="#38bdf8"
+            wireframe
+            transparent
+            opacity={0.09}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
+
+      {/* Atmospheric Rim Glow */}
       {cfg.atmosphereOpacity > 0 && (
         <mesh>
           <sphereGeometry args={[radius * 1.015, 96, 64]} />
@@ -155,32 +172,34 @@ function SiteMarker3D({
   lon,
   radius,
   title,
-  subtitle,
   selected,
+  body,
   onClick,
 }: {
   lat: number;
   lon: number;
   radius: number;
   title: string;
-  subtitle: string;
   selected: boolean;
+  body: 'earth' | PlanetaryBody;
   onClick: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
-  const pos = useMemo(() => positionFromLatLon(lat, lon, radius * 1.012), [lat, lon, radius]);
+  const pos = useMemo(() => positionFromLatLon(lat, lon, radius * 1.01), [lat, lon, radius]);
   const ringRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
     if (ringRef.current && (hovered || selected)) {
-      const scale = 1 + Math.sin(clock.getElapsedTime() * 4.0) * 0.25;
+      const scale = 1 + Math.sin(clock.getElapsedTime() * 4.0) * 0.22;
       ringRef.current.scale.set(scale, scale, scale);
     }
   });
 
+  const pinColor = selected ? '#ffffff' : body === 'mars' ? '#f59e0b' : '#38bdf8';
+
   return (
     <group position={pos}>
-      {/* Tactical Pin Dot */}
+      {/* Circular Pin Dot with Precision Contrast */}
       <mesh
         onClick={(e) => {
           e.stopPropagation();
@@ -192,43 +211,56 @@ function SiteMarker3D({
         }}
         onPointerOut={() => setHovered(false)}
       >
-        <sphereGeometry args={[selected ? 0.032 : 0.022, 16, 16]} />
-        <meshBasicMaterial color={selected ? '#ffffff' : '#d4d4d8'} />
+        <sphereGeometry args={[selected ? 0.038 : 0.026, 16, 16]} />
+        <meshBasicMaterial color={pinColor} />
       </mesh>
 
-      {/* Pulsing Target Ring */}
+      {/* Outer Glow / Pulse Ring */}
       <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.038, 0.048, 32]} />
+        <ringGeometry args={[0.036, 0.05, 32]} />
         <meshBasicMaterial
-          color="#ffffff"
+          color={pinColor}
           transparent
-          opacity={selected ? 0.9 : 0.35}
+          opacity={selected ? 0.95 : 0.35}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* Lightweight Hover-Only Tooltip (Prevents permanently blocking the sphere) */}
-      {hovered && (
-        <Html position={[0, 0.08, 0]} center style={{ pointerEvents: 'none' }}>
-          <div
-            style={{
-              background: 'rgba(9, 9, 11, 0.94)',
-              border: '1px solid #71717a',
-              borderRadius: '3px',
-              padding: '3px 7px',
-              color: '#ffffff',
-              fontSize: '10px',
-              fontWeight: 700,
-              whiteSpace: 'nowrap',
-              fontFamily: 'monospace, sans-serif',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.85)',
-            }}
-          >
-            <div>{title}</div>
-            <div style={{ fontSize: '8px', color: '#a1a1aa' }}>{subtitle}</div>
-          </div>
-        </Html>
-      )}
+      {/* Precision Label Pill (Matches Reference Screenshots) */}
+      <Html
+        position={[0.045, 0.015, 0]}
+        style={{
+          pointerEvents: 'none',
+          userSelect: 'none',
+          transform: 'translateY(-50%)',
+        }}
+      >
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
+          style={{
+            pointerEvents: 'auto',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            background: selected ? 'rgba(15, 23, 42, 0.94)' : 'rgba(6, 14, 22, 0.82)',
+            border: `1px solid ${selected ? '#ffffff' : 'rgba(255, 255, 255, 0.22)'}`,
+            borderRadius: '2px',
+            padding: '1px 6px',
+            fontSize: '10px',
+            fontWeight: selected ? 700 : 500,
+            color: selected ? '#ffffff' : '#e4edf6',
+            whiteSpace: 'nowrap',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            textShadow: '0 1px 3px rgba(0,0,0,0.95)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.85)',
+          }}
+        >
+          {title}
+        </div>
+      </Html>
     </group>
   );
 }
@@ -250,28 +282,27 @@ function Scene({
   const targetVec = useRef<THREE.Vector3 | null>(null);
   const lastReset = useRef(resetSignal);
   const cfg = BODY_CONFIG[body];
-  const centerOffset: [number, number, number] = [-0.42, 0, 0];
 
   useEffect(() => {
     if (lastReset.current !== resetSignal) {
       lastReset.current = resetSignal;
-      targetVec.current = new THREE.Vector3(centerOffset[0], 0, cfg.cameraDist);
+      targetVec.current = new THREE.Vector3(0, 0, cfg.cameraDist);
     }
-  }, [resetSignal, cfg.cameraDist, centerOffset]);
+  }, [resetSignal, cfg.cameraDist]);
 
   useEffect(() => {
     const lat = selectedAnalog?.latitude ?? selectedReference?.latitude;
     const lon = selectedAnalog?.longitude ?? selectedReference?.longitude;
     if (lat !== undefined && lon !== undefined) {
       const [x, y, z] = positionFromLatLon(lat, lon, cfg.cameraDist);
-      targetVec.current = new THREE.Vector3(x + centerOffset[0], y, z);
+      targetVec.current = new THREE.Vector3(x, y, z);
     }
-  }, [selectedReference, selectedAnalog, cfg.cameraDist, centerOffset]);
+  }, [selectedReference, selectedAnalog, cfg.cameraDist]);
 
   useFrame((_, delta) => {
     if (!targetVec.current) return;
-    camera.position.lerp(targetVec.current, Math.min(1, delta * 2.8));
-    camera.lookAt(centerOffset[0], 0, 0);
+    camera.position.lerp(targetVec.current, Math.min(1, delta * 3.0));
+    camera.lookAt(0, 0, 0);
     if (camera.position.distanceTo(targetVec.current) < 0.02) {
       targetVec.current = null;
     }
@@ -279,24 +310,25 @@ function Scene({
 
   return (
     <>
-      <color attach="background" args={['#000000']} />
+      {/* Deep Space Ambiance matching original NASA Explorer (RGB: 8, 14, 22) */}
+      <color attach="background" args={['#080e16']} />
 
-      {/* Realistic NASA Cosmic Lighting: Single Primary Sun + Minimal Ambient */}
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[9, 4, 7]} intensity={1.8} />
-      <directionalLight position={[-9, -2, -5]} intensity={0.12} />
+      {/* NASA Natural Front-Lit Illumination: Saturated, Vivid, No Pitch-Black Darkness */}
+      <ambientLight intensity={0.92} />
+      <directionalLight position={[3, 2, 7]} intensity={1.05} />
+      <directionalLight position={[-3, -1, -4]} intensity={0.3} />
 
-      <Stars radius={110} depth={60} count={3500} factor={3.5} saturation={0} fade speed={0.2} />
+      <Stars radius={110} depth={60} count={3000} factor={3.2} saturation={0} fade speed={0.2} />
 
-      {/* Off-center group to perfectly frame planet alongside the telemetry drawer */}
-      <group position={centerOffset}>
+      <group>
         <CelestialSphere
           body={body}
           radius={cfg.radius}
+          showGraticule={cfg.showGraticule}
           onClickCoords={onSelectCoordinate}
         />
 
-        {/* Moon/Mars Reference Markers */}
+        {/* Moon/Mars Reference Markers with Direct Visible Place Labels */}
         {body !== 'earth' &&
           referenceSites.map((site) => (
             <SiteMarker3D
@@ -305,13 +337,13 @@ function Scene({
               lon={site.longitude}
               radius={cfg.radius}
               title={site.name}
-              subtitle={`${Math.abs(site.latitude).toFixed(2)}°${site.latitude >= 0 ? 'N' : 'S'}, ${Math.abs(site.longitude).toFixed(2)}°${site.longitude >= 0 ? 'E' : 'W'}`}
+              body={body}
               selected={selectedReference?.id === site.id}
               onClick={() => onSelectReference && onSelectReference(site)}
             />
           ))}
 
-        {/* Earth Analog Markers */}
+        {/* Earth Analog Markers with Direct Visible Place Labels */}
         {body === 'earth' &&
           analogSites.map((site) => (
             <SiteMarker3D
@@ -320,7 +352,7 @@ function Scene({
               lon={site.longitude}
               radius={cfg.radius}
               title={site.name}
-              subtitle={`${site.similarity_percent}% SIMILARITY`}
+              body={body}
               selected={selectedAnalog?.earth_id === site.earth_id}
               onClick={() => onSelectAnalog && onSelectAnalog(site)}
             />
@@ -329,10 +361,9 @@ function Scene({
 
       <OrbitControls
         ref={orbitRef}
-        target={centerOffset}
         enablePan={false}
-        minDistance={3.2}
-        maxDistance={12}
+        minDistance={2.8}
+        maxDistance={11}
         enableDamping
         dampingFactor={0.06}
         autoRotate={autoRotate}
@@ -351,13 +382,13 @@ export function PlanetGlobe(props: PlanetGlobeProps) {
   const cfg = BODY_CONFIG[props.body];
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000000' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', background: '#080e16', overflow: 'hidden' }}>
       {/* Top HUD Telemetry Tag */}
       <div
         style={{
           position: 'absolute',
-          top: 14,
-          left: 18,
+          top: 12,
+          left: 14,
           zIndex: 10,
           pointerEvents: 'none',
           display: 'flex',
@@ -371,8 +402,8 @@ export function PlanetGlobe(props: PlanetGlobeProps) {
               width: 7,
               height: 7,
               borderRadius: '50%',
-              background: '#ffffff',
-              boxShadow: '0 0 6px #ffffff',
+              background: props.body === 'mars' ? '#f59e0b' : '#38bdf8',
+              boxShadow: `0 0 6px ${props.body === 'mars' ? '#f59e0b' : '#38bdf8'}`,
             }}
           />
           <span
@@ -381,14 +412,14 @@ export function PlanetGlobe(props: PlanetGlobeProps) {
               fontWeight: 800,
               letterSpacing: '0.12em',
               color: '#ffffff',
-              fontFamily: 'monospace, sans-serif',
+              fontFamily: 'system-ui, monospace, sans-serif',
             }}
           >
-            {cfg.name} // 3D OBSERVATORY
+            {props.headerBadge || `${cfg.name} // 3D OBSERVATORY`}
           </span>
         </div>
-        <div style={{ fontSize: '9px', color: '#a1a1aa', letterSpacing: '0.06em', fontFamily: 'monospace' }}>
-          {cfg.sub}
+        <div style={{ fontSize: '9px', color: '#94a3b8', letterSpacing: '0.06em', fontFamily: 'monospace' }}>
+          {props.subBadge || cfg.sub}
         </div>
       </div>
 
@@ -396,9 +427,9 @@ export function PlanetGlobe(props: PlanetGlobeProps) {
       <div
         style={{
           position: 'absolute',
-          bottom: 14,
-          left: 18,
-          right: 370,
+          bottom: 10,
+          left: 14,
+          right: 14,
           zIndex: 10,
           display: 'flex',
           justifyContent: 'space-between',
@@ -410,17 +441,17 @@ export function PlanetGlobe(props: PlanetGlobeProps) {
           style={{
             fontSize: '9px',
             color: '#71717a',
-            letterSpacing: '0.08em',
+            letterSpacing: '0.06em',
             display: 'flex',
-            gap: 12,
+            gap: 10,
             fontFamily: 'monospace',
           }}
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Compass size={11} color="#a1a1aa" /> DRAG ROTATE
+            <Compass size={10} color="#a1a1aa" /> DRAG ROTATE
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Eye size={11} color="#a1a1aa" /> SCROLL ZOOM
+            <Eye size={10} color="#a1a1aa" /> SCROLL ZOOM
           </span>
         </div>
         <button
@@ -430,32 +461,31 @@ export function PlanetGlobe(props: PlanetGlobeProps) {
           }}
           style={{
             pointerEvents: 'auto',
-            background: 'rgba(0, 0, 0, 0.85)',
+            background: 'rgba(6, 14, 22, 0.85)',
             border: '1px solid #27272a',
-            borderRadius: 4,
-            color: '#ffffff',
-            fontSize: '10px',
-            padding: '5px 10px',
+            borderRadius: 3,
+            color: '#e4edf6',
+            fontSize: '9px',
+            padding: '4px 8px',
             display: 'flex',
             alignItems: 'center',
-            gap: 5,
+            gap: 4,
             cursor: 'pointer',
             fontFamily: 'monospace',
           }}
         >
-          <RotateCcw size={11} /> RESET VIEW
+          <RotateCcw size={10} /> RESET
         </button>
       </div>
 
       <Canvas
         onCreated={() => setReady(true)}
-        camera={{ position: [-0.42, 0, cfg.cameraDist], fov: 38 }}
+        camera={{ position: [0, 0, cfg.cameraDist], fov: 42 }}
         dpr={[1, 2]}
         gl={{
           antialias: true,
           powerPreference: 'high-performance',
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.0,
+          toneMapping: THREE.NoToneMapping,
         }}
       >
         <Suspense fallback={null}>
@@ -465,4 +495,3 @@ export function PlanetGlobe(props: PlanetGlobeProps) {
     </div>
   );
 }
-
