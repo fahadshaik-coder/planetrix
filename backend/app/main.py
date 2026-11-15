@@ -55,12 +55,18 @@ def create_app() -> FastAPI:
             return FileResponse(frontend_dist / "index.html")
         return FileResponse(explorer_dir / "index.html")
 
-    @application.get("/3d", include_in_schema=False)
-    def three_d() -> FileResponse:
-        """Direct route to the 3D NASA WebGL Observatory."""
-        if (frontend_dist / "index.html").exists():
-            return FileResponse(frontend_dist / "index.html")
-        return FileResponse(explorer_dir / "index.html")
+    @application.get("/earth_naturalearth.jpg", include_in_schema=False)
+    @application.get("/earth.jpg", include_in_schema=False)
+    def earth_img() -> FileResponse:
+        return FileResponse(explorer_dir / "earth.jpg")
+
+    @application.get("/moon.jpg", include_in_schema=False)
+    def moon_img() -> FileResponse:
+        return FileResponse(explorer_dir / "moon.jpg")
+
+    @application.get("/mars.jpg", include_in_schema=False)
+    def mars_img() -> FileResponse:
+        return FileResponse(explorer_dir / "mars.jpg")
 
     return application
 

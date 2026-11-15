@@ -130,59 +130,60 @@ export function ObservatoryApp() {
         height: '100vh',
         background: '#000000',
         color: '#ffffff',
-        fontFamily: "'Space Grotesk', monospace, system-ui, sans-serif",
+        fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         overflow: 'hidden',
       }}
     >
-      {/* 1. TOP MINIMALIST NASA COMMAND HEADER */}
+      {/* 1. TOP MINIMALIST HEADER (PURE WHITE & GREY / ZERO BLUE) */}
       <header
         style={{
           position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
-          height: 52,
-          background: 'rgba(0, 0, 0, 0.92)',
-          borderBottom: '1px solid #111827',
+          height: 50,
+          background: 'rgba(9, 9, 11, 0.94)',
+          borderBottom: '1px solid #27272a',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 20px',
           zIndex: 30,
-          backdropFilter: 'blur(10px)',
+          backdropFilter: 'blur(12px)',
         }}
       >
         {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div
             style={{
-              width: 28,
-              height: 28,
+              width: 26,
+              height: 26,
               borderRadius: 4,
-              background: '#0b3d91', // Official NASA Blue
+              background: '#27272a',
+              border: '1px solid #3f3f46',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Globe2 size={16} color="#ffffff" />
+            <Globe2 size={15} color="#ffffff" />
           </div>
           <div>
-            <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.14em', color: '#ffffff' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.12em', color: '#ffffff' }}>
               PLANETRIX
             </span>
-            <span style={{ fontSize: '9px', color: '#94a3b8', letterSpacing: '0.1em', marginLeft: 8 }}>
-              NASA ANALOG MISSION OBSERVATORY
+            <span style={{ fontSize: '9px', color: '#a1a1aa', letterSpacing: '0.1em', marginLeft: 8 }}>
+              PLANETARY ANALOG MISSION OBSERVATORY
             </span>
           </div>
         </div>
 
-        {/* Planet Navigation Pill */}
+        {/* Planet Navigation Pills (White & Grey) */}
         <div
           style={{
             display: 'flex',
-            background: '#050914',
-            border: '1px solid #1e293b',
+            background: '#18181b',
+            border: '1px solid #27272a',
             borderRadius: 6,
             padding: 2,
             gap: 2,
@@ -192,14 +193,15 @@ export function ObservatoryApp() {
             onClick={() => handleSelectPlanet('moon')}
             style={{
               border: 0,
-              background: activeBody === 'moon' ? '#0b3d91' : 'transparent',
-              color: '#ffffff',
+              background: activeBody === 'moon' ? '#ffffff' : 'transparent',
+              color: activeBody === 'moon' ? '#000000' : '#a1a1aa',
               fontWeight: 700,
               fontSize: '10px',
-              padding: '6px 14px',
+              padding: '5px 14px',
               borderRadius: 4,
               cursor: 'pointer',
-              letterSpacing: '0.08em',
+              letterSpacing: '0.06em',
+              transition: 'all 0.15s ease',
             }}
           >
             MOON
@@ -208,14 +210,15 @@ export function ObservatoryApp() {
             onClick={() => handleSelectPlanet('mars')}
             style={{
               border: 0,
-              background: activeBody === 'mars' ? '#0b3d91' : 'transparent',
-              color: '#ffffff',
+              background: activeBody === 'mars' ? '#ffffff' : 'transparent',
+              color: activeBody === 'mars' ? '#000000' : '#a1a1aa',
               fontWeight: 700,
               fontSize: '10px',
-              padding: '6px 14px',
+              padding: '5px 14px',
               borderRadius: 4,
               cursor: 'pointer',
-              letterSpacing: '0.08em',
+              letterSpacing: '0.06em',
+              transition: 'all 0.15s ease',
             }}
           >
             MARS
@@ -224,37 +227,38 @@ export function ObservatoryApp() {
             onClick={() => setActiveBody('earth')}
             style={{
               border: 0,
-              background: activeBody === 'earth' ? '#0b3d91' : 'transparent',
-              color: '#ffffff',
+              background: activeBody === 'earth' ? '#ffffff' : 'transparent',
+              color: activeBody === 'earth' ? '#000000' : '#a1a1aa',
               fontWeight: 700,
               fontSize: '10px',
-              padding: '6px 14px',
+              padding: '5px 14px',
               borderRadius: 4,
               cursor: 'pointer',
-              letterSpacing: '0.08em',
+              letterSpacing: '0.06em',
+              transition: 'all 0.15s ease',
             }}
           >
             EARTH ANALOGS ({analogResults.length})
           </button>
         </div>
 
-        {/* Live Telemetry Status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '9px', color: '#94a3b8', fontFamily: 'monospace' }}>
+        {/* Status indicator */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '9px', color: '#a1a1aa', fontFamily: 'monospace' }}>
           <span
             style={{
               width: 6,
               height: 6,
               borderRadius: '50%',
-              background: '#0b3d91',
-              boxShadow: '0 0 6px #0b3d91',
+              background: '#ffffff',
+              boxShadow: '0 0 5px #ffffff',
             }}
           />
-          <span>NASA LRO / MOLA · COPERNICUS DEM 90M</span>
+          <span>LRO / MOLA · COPERNICUS DEM 90M</span>
         </div>
       </header>
 
       {/* 2. FULL-VIEWPORT 3D CELESTIAL STAGE */}
-      <div style={{ width: '100%', height: '100%', paddingTop: 52, position: 'relative' }}>
+      <div style={{ width: '100%', height: '100%', paddingTop: 50, position: 'relative' }}>
         <PlanetGlobe
           body={activeBody}
           referenceSites={references}
@@ -279,7 +283,7 @@ export function ObservatoryApp() {
         <div
           style={{
             position: 'absolute',
-            top: 66,
+            top: 64,
             left: 20,
             zIndex: 15,
             display: 'flex',
@@ -289,10 +293,10 @@ export function ObservatoryApp() {
         >
           <div
             style={{
-              background: 'rgba(0, 0, 0, 0.88)',
-              border: '1px solid #1e293b',
+              background: 'rgba(9, 9, 11, 0.90)',
+              border: '1px solid #27272a',
               borderRadius: 4,
-              padding: '6px 10px',
+              padding: '5px 9px',
               fontSize: '10px',
               fontFamily: 'monospace',
               color: '#ffffff',
@@ -301,21 +305,21 @@ export function ObservatoryApp() {
               gap: 6,
             }}
           >
-            <Activity size={12} color="#0b3d91" />
+            <Activity size={12} color="#ffffff" />
             <span>
               {activeBody === 'earth'
-                ? `REF: ${selectedReference?.name ?? 'Target'}`
-                : `SELECT SURFACE SITE OR CLICK COORDINATES`}
+                ? `REF: ${selectedReference?.name ?? 'Selected Target'}`
+                : `CLICK LANDMARK PIN OR SURFACE TO SELECT`}
             </span>
           </div>
 
           <button
             onClick={() => setAutoRotate(!autoRotate)}
             style={{
-              background: 'rgba(0, 0, 0, 0.88)',
-              border: '1px solid #1e293b',
+              background: 'rgba(9, 9, 11, 0.90)',
+              border: '1px solid #27272a',
               borderRadius: 4,
-              color: autoRotate ? '#ffffff' : '#64748b',
+              color: autoRotate ? '#ffffff' : '#71717a',
               padding: '4px 8px',
               fontSize: '9px',
               fontWeight: 700,
@@ -332,31 +336,31 @@ export function ObservatoryApp() {
           </button>
         </div>
 
-        {/* 3. FLOATING TELEMETRY DRAWER (SLIM, COMPACT, NASA BLUE & WHITE) */}
+        {/* 3. COMPACT FLOATING TELEMETRY DRAWER (WHITE & GREY ONLY / DECREASED CARD SIZES) */}
         <aside
           style={{
             position: 'absolute',
-            top: 66,
+            top: 64,
             right: 20,
             bottom: 20,
-            width: 360,
-            background: 'rgba(2, 4, 10, 0.92)',
-            border: '1px solid #1a2942',
+            width: 350,
+            background: 'rgba(9, 9, 11, 0.94)',
+            border: '1px solid #27272a',
             borderRadius: 8,
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
             zIndex: 20,
             backdropFilter: 'blur(16px)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.9)',
           }}
         >
           {/* MODE A: MOON / MARS SITE SELECTOR */}
           {activeBody !== 'earth' && (
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <div style={{ padding: '12px 14px 8px', borderBottom: '1px solid #111827' }}>
-                <div style={{ fontSize: '9px', fontWeight: 800, color: '#3b82f6', letterSpacing: '0.12em' }}>
-                  STEP 1 // SELECT PLANETARY SITE
+              <div style={{ padding: '12px 14px 8px', borderBottom: '1px solid #27272a' }}>
+                <div style={{ fontSize: '9px', fontWeight: 800, color: '#a1a1aa', letterSpacing: '0.12em' }}>
+                  STEP 1 // TARGET SELECTION
                 </div>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', margin: '3px 0' }}>
                   {activeBody === 'moon' ? 'Lunar Reference Locations' : 'Martian Surface Regions'}
@@ -372,8 +376,8 @@ export function ObservatoryApp() {
                       key={site.id}
                       onClick={() => setSelectedReference(site)}
                       style={{
-                        background: isSelected ? 'rgba(11, 61, 145, 0.28)' : 'rgba(0, 0, 0, 0.6)',
-                        border: `1px solid ${isSelected ? '#0b3d91' : '#1e293b'}`,
+                        background: isSelected ? '#18181b' : 'rgba(9, 9, 11, 0.6)',
+                        border: `1px solid ${isSelected ? '#ffffff' : '#27272a'}`,
                         borderRadius: 6,
                         padding: '8px 10px',
                         cursor: 'pointer',
@@ -382,12 +386,12 @@ export function ObservatoryApp() {
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>{site.name}</span>
-                        <span style={{ fontSize: '8px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                        <span style={{ fontSize: '8px', color: '#a1a1aa', fontFamily: 'monospace' }}>
                           {site.latitude.toFixed(2)}°, {site.longitude.toFixed(2)}°
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: '9px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: '9px', color: '#a1a1aa', fontFamily: 'monospace' }}>
                         <span>SLOPE: <strong style={{ color: '#ffffff' }}>{site.features.slope_deg.value}°</strong></span>
                         <span>ROUGHNESS: <strong style={{ color: '#ffffff' }}>{site.features.residual_roughness_m.value}m</strong></span>
                       </div>
@@ -397,25 +401,25 @@ export function ObservatoryApp() {
               </div>
 
               {/* Action Button: Scan Earth */}
-              <div style={{ padding: '10px 12px', borderTop: '1px solid #111827', background: '#02040a' }}>
+              <div style={{ padding: '10px 12px', borderTop: '1px solid #27272a', background: '#09090b' }}>
                 <button
                   disabled={!selectedReference}
                   onClick={handleScanEarth}
                   style={{
                     width: '100%',
-                    background: '#0b3d91', // Pure NASA Blue
-                    border: '1px solid #1d4ed8',
-                    borderRadius: 5,
-                    color: '#ffffff',
+                    background: '#ffffff',
+                    border: '1px solid #ffffff',
+                    borderRadius: 4,
+                    color: '#000000',
                     fontWeight: 700,
                     fontSize: '11px',
-                    padding: '9px 12px',
+                    padding: '8px 12px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 6,
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.06em',
                   }}
                 >
                   SCAN EARTH ANALOGS <ChevronRight size={14} />
@@ -428,13 +432,13 @@ export function ObservatoryApp() {
           {activeBody === 'earth' && (
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               {/* Header Context */}
-              <div style={{ padding: '10px 12px 8px', borderBottom: '1px solid #111827' }}>
+              <div style={{ padding: '10px 12px 8px', borderBottom: '1px solid #27272a' }}>
                 <button
                   onClick={handleBackToPlanet}
                   style={{
                     background: 'none',
                     border: 0,
-                    color: '#3b82f6',
+                    color: '#a1a1aa',
                     fontSize: '10px',
                     fontWeight: 700,
                     display: 'flex',
@@ -449,7 +453,7 @@ export function ObservatoryApp() {
                 </button>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>Earth Analog Sites</span>
-                  <span style={{ fontSize: '10px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                  <span style={{ fontSize: '10px', color: '#a1a1aa', fontFamily: 'monospace' }}>
                     {filteredAnalogs.length} MATCHES
                   </span>
                 </div>
@@ -459,15 +463,15 @@ export function ObservatoryApp() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    background: '#040712',
-                    border: '1px solid #1e293b',
+                    background: '#18181b',
+                    border: '1px solid #27272a',
                     borderRadius: 4,
                     padding: '4px 8px',
                     marginTop: 6,
                     gap: 6,
                   }}
                 >
-                  <Search size={12} color="#64748b" />
+                  <Search size={12} color="#71717a" />
                   <input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -483,7 +487,7 @@ export function ObservatoryApp() {
                   />
                 </div>
 
-                {/* Compact Filter Pills */}
+                {/* Compact Filter Pills (White & Grey) */}
                 <div style={{ display: 'flex', gap: 4, marginTop: 6, overflowX: 'auto', paddingBottom: 2 }}>
                   {[
                     { id: 'all', label: 'All' },
@@ -499,12 +503,12 @@ export function ObservatoryApp() {
                         key={filter.id}
                         onClick={() => setSelectedExperimentFilter(filter.id)}
                         style={{
-                          background: active ? '#0b3d91' : 'transparent',
-                          border: `1px solid ${active ? '#3b82f6' : '#1e293b'}`,
-                          color: '#ffffff',
+                          background: active ? '#ffffff' : '#18181b',
+                          border: `1px solid ${active ? '#ffffff' : '#27272a'}`,
+                          color: active ? '#000000' : '#a1a1aa',
                           fontSize: '9px',
                           fontWeight: 700,
-                          padding: '2px 6px',
+                          padding: '2px 7px',
                           borderRadius: 3,
                           cursor: 'pointer',
                           whiteSpace: 'nowrap',
@@ -517,14 +521,14 @@ export function ObservatoryApp() {
                 </div>
               </div>
 
-              {/* Compact Body / Scrollable Inspector */}
+              {/* Scrollable Body: Selected Analog Details + Candidates List */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {/* Selected Analog Details (Decreased Card Size) */}
+                {/* Selected Analog Details (Decreased Card Sizes) */}
                 {selectedAnalog && (
                   <div
                     style={{
-                      background: 'rgba(4, 8, 18, 0.96)',
-                      border: '1px solid #0b3d91',
+                      background: '#18181b',
+                      border: '1px solid #3f3f46',
                       borderRadius: 6,
                       padding: '10px 12px',
                     }}
@@ -534,13 +538,14 @@ export function ObservatoryApp() {
                         <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
                           {selectedAnalog.name}
                         </div>
-                        <div style={{ fontSize: '9px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: '9px', color: '#a1a1aa', fontFamily: 'monospace' }}>
                           {selectedAnalog.latitude.toFixed(2)}°N, {selectedAnalog.longitude.toFixed(2)}°E
                         </div>
                       </div>
                       <div
                         style={{
-                          background: '#0b3d91',
+                          background: '#27272a',
+                          border: '1px solid #3f3f46',
                           borderRadius: 4,
                           padding: '2px 6px',
                           fontSize: '11px',
@@ -553,22 +558,22 @@ export function ObservatoryApp() {
                       </div>
                     </div>
 
-                    <div style={{ fontSize: '10px', color: '#cbd5e1', margin: '6px 0', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: '10px', color: '#d4d4d8', margin: '6px 0', lineHeight: 1.4 }}>
                       {selectedAnalog.environment_summary}
                     </div>
 
                     {/* Compact Physical Slope & Roughness */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, margin: '6px 0' }}>
-                      <div style={{ background: '#02040a', border: '1px solid #1e293b', padding: '5px 7px', borderRadius: 4 }}>
-                        <span style={{ fontSize: '8px', color: '#64748b', display: 'block', fontFamily: 'monospace' }}>
+                      <div style={{ background: '#09090b', border: '1px solid #27272a', padding: '5px 7px', borderRadius: 4 }}>
+                        <span style={{ fontSize: '8px', color: '#71717a', display: 'block', fontFamily: 'monospace' }}>
                           SLOPE (DEM 90M)
                         </span>
                         <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
                           {selectedAnalog.features.slope_deg}° (Δ{selectedAnalog.differences.slope_delta_deg}°)
                         </span>
                       </div>
-                      <div style={{ background: '#02040a', border: '1px solid #1e293b', padding: '5px 7px', borderRadius: 4 }}>
-                        <span style={{ fontSize: '8px', color: '#64748b', display: 'block', fontFamily: 'monospace' }}>
+                      <div style={{ background: '#09090b', border: '1px solid #27272a', padding: '5px 7px', borderRadius: 4 }}>
+                        <span style={{ fontSize: '8px', color: '#71717a', display: 'block', fontFamily: 'monospace' }}>
                           ROUGHNESS
                         </span>
                         <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
@@ -583,8 +588,8 @@ export function ObservatoryApp() {
                       disabled={liveDemLoading}
                       style={{
                         width: '100%',
-                        background: 'transparent',
-                        border: '1px solid #0b3d91',
+                        background: '#09090b',
+                        border: '1px solid #3f3f46',
                         borderRadius: 4,
                         color: '#ffffff',
                         fontSize: '9px',
@@ -606,8 +611,8 @@ export function ObservatoryApp() {
                     {liveDemData && (
                       <div
                         style={{
-                          background: '#02040a',
-                          border: '1px solid #0b3d91',
+                          background: '#09090b',
+                          border: '1px solid #3f3f46',
                           borderRadius: 4,
                           padding: '6px 8px',
                           fontSize: '9px',
@@ -623,9 +628,9 @@ export function ObservatoryApp() {
                       <div style={{ color: '#ffffff', fontSize: '9px', marginBottom: 6 }}>{liveDemError}</div>
                     )}
 
-                    {/* 5-Domain Mission Experiment Suitability Matrix (Compact NASA Blue / White Rows) */}
-                    <div style={{ borderTop: '1px solid #1e293b', paddingTop: 8 }}>
-                      <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', marginBottom: 6 }}>
+                    {/* 5-Domain Mission Experiment Suitability Matrix (White & Grey) */}
+                    <div style={{ borderTop: '1px solid #27272a', paddingTop: 8 }}>
+                      <div style={{ fontSize: '9px', fontWeight: 800, color: '#a1a1aa', letterSpacing: '0.1em', marginBottom: 6 }}>
                         MISSION EXPERIMENT SUITABILITY
                       </div>
 
@@ -634,8 +639,8 @@ export function ObservatoryApp() {
                           <div
                             key={exp.id}
                             style={{
-                              background: '#02040a',
-                              border: '1px solid #111827',
+                              background: '#09090b',
+                              border: '1px solid #27272a',
                               borderRadius: 4,
                               padding: '6px 8px',
                             }}
@@ -648,9 +653,10 @@ export function ObservatoryApp() {
                                 style={{
                                   fontSize: '8px',
                                   fontWeight: 800,
-                                  padding: '1px 4px',
+                                  padding: '1px 5px',
                                   borderRadius: 2,
-                                  background: '#0b3d91',
+                                  background: '#27272a',
+                                  border: '1px solid #3f3f46',
                                   color: '#ffffff',
                                   fontFamily: 'monospace',
                                 }}
@@ -659,11 +665,11 @@ export function ObservatoryApp() {
                               </span>
                             </div>
 
-                            {/* Slim NASA Blue Progress Line */}
+                            {/* Slim White Progress Line */}
                             <div
                               style={{
                                 height: 2,
-                                background: '#1e293b',
+                                background: '#27272a',
                                 borderRadius: 1,
                                 margin: '4px 0',
                                 overflow: 'hidden',
@@ -673,12 +679,12 @@ export function ObservatoryApp() {
                                 style={{
                                   width: `${exp.readiness_score}%`,
                                   height: '100%',
-                                  background: '#0b3d91',
+                                  background: '#ffffff',
                                 }}
                               />
                             </div>
 
-                            <div style={{ fontSize: '9px', color: '#94a3b8', lineHeight: 1.3 }}>
+                            <div style={{ fontSize: '9px', color: '#a1a1aa', lineHeight: 1.3 }}>
                               {exp.scientific_rationale}
                             </div>
                           </div>
@@ -688,8 +694,8 @@ export function ObservatoryApp() {
                   </div>
                 )}
 
-                {/* Ranked List of Other Candidates (Compact) */}
-                <div style={{ fontSize: '9px', fontWeight: 800, color: '#64748b', letterSpacing: '0.1em' }}>
+                {/* Ranked List of Other Candidates (Decreased Card Size) */}
+                <div style={{ fontSize: '9px', fontWeight: 800, color: '#71717a', letterSpacing: '0.1em' }}>
                   CANDIDATES
                 </div>
 
@@ -703,8 +709,8 @@ export function ObservatoryApp() {
                         setLiveDemData(null);
                       }}
                       style={{
-                        background: isSelected ? 'rgba(11, 61, 145, 0.25)' : 'rgba(0, 0, 0, 0.6)',
-                        border: `1px solid ${isSelected ? '#0b3d91' : '#1e293b'}`,
+                        background: isSelected ? '#18181b' : 'rgba(9, 9, 11, 0.6)',
+                        border: `1px solid ${isSelected ? '#ffffff' : '#27272a'}`,
                         borderRadius: 4,
                         padding: '6px 8px',
                         cursor: 'pointer',
@@ -717,7 +723,7 @@ export function ObservatoryApp() {
                         <div style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
                           #{index + 1} {item.name}
                         </div>
-                        <div style={{ fontSize: '8px', color: '#64748b', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: '8px', color: '#71717a', fontFamily: 'monospace' }}>
                           Slope {item.features.slope_deg}° · Roughness {item.features.residual_roughness_m}m
                         </div>
                       </div>
@@ -727,7 +733,8 @@ export function ObservatoryApp() {
                           fontSize: '10px',
                           fontWeight: 800,
                           color: '#ffffff',
-                          background: '#0b3d91',
+                          background: '#27272a',
+                          border: '1px solid #3f3f46',
                           padding: '1px 5px',
                           borderRadius: 3,
                           fontFamily: 'monospace',
