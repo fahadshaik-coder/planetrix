@@ -66,6 +66,43 @@ const BODY_CONFIG = {
   },
 };
 
+// Global Texture Cache: preloads textures immediately on app start to prevent late rendering
+const TEXTURE_CACHE: Record<string, THREE.Texture> = {};
+
+function getPreloadedTexture(url: string, fallbackUrl?: string): THREE.Texture {
+  if (TEXTURE_CACHE[url]) return TEXTURE_CACHE[url];
+  const loader = new THREE.TextureLoader();
+  const tex = loader.load(
+    url,
+    (t) => {
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.needsUpdate = true;
+    },
+    undefined,
+    () => {
+      if (fallbackUrl) {
+        loader.load(fallbackUrl, (fbTex) => {
+          fbTex.colorSpace = THREE.SRGBColorSpace;
+          TEXTURE_CACHE[url] = fbTex;
+        });
+      }
+    }
+  );
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.generateMipmaps = true;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  TEXTURE_CACHE[url] = tex;
+  return tex;
+}
+
+// Preload all 3 planet textures immediately into browser memory
+if (typeof window !== 'undefined') {
+  getPreloadedTexture('/earth.jpg', '/explorer-assets/earth.jpg');
+  getPreloadedTexture('/moon.jpg', '/explorer-assets/moon.jpg');
+  getPreloadedTexture('/mars.jpg', '/explorer-assets/mars.jpg');
+}
+
 function CelestialSphere({
   body,
   radius,
@@ -77,43 +114,13 @@ function CelestialSphere({
   showGraticule?: boolean;
   onClickCoords?: (lat: number, lon: number) => void;
 }) {
-  const [texture, setTexture] = useState<THREE.Texture | null>(null);
   const cfg = BODY_CONFIG[body];
+  const texture = useMemo(
+    () => getPreloadedTexture(cfg.texture, `/explorer-assets/${body}.jpg`),
+    [cfg.texture, body]
+  );
 
-  useEffect(() => {
-    let active = true;
-    const loader = new THREE.TextureLoader();
-    loader.load(
-      cfg.texture,
-      (tex) => {
-        if (!active) {
-          tex.dispose();
-          return;
-        }
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.generateMipmaps = true;
-        tex.minFilter = THREE.LinearMipmapLinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        tex.anisotropy = 16;
-        setTexture(tex);
-      },
-      undefined,
-      () => {
-        loader.load(`/explorer-assets/${body}.jpg`, (tex) => {
-          if (!active) {
-            tex.dispose();
-            return;
-          }
-          tex.colorSpace = THREE.SRGBColorSpace;
-          tex.anisotropy = 16;
-          setTexture(tex);
-        });
-      }
-    );
-    return () => {
-      active = false;
-    };
-  }, [cfg.texture, body]);
+  const fallbackColor = body === 'mars' ? '#8a3a22' : body === 'moon' ? '#3a3c42' : '#12365a';
 
   const handlePointerDown = (e: any) => {
     if (!onClickCoords || !e.point) return;
@@ -125,12 +132,12 @@ function CelestialSphere({
 
   return (
     <group>
-      {/* High-Resolution Natural Celestial Sphere */}
+      {/* High-Resolution Natural Celestial Sphere (Instant Texture Binding) */}
       <mesh rotation={[0, Math.PI, 0]} onPointerDown={handlePointerDown}>
         <sphereGeometry args={[radius, 128, 96]} />
         <meshStandardMaterial
-          map={texture ?? undefined}
-          color={cfg.color}
+          map={texture}
+          color={texture ? '#ffffff' : fallbackColor}
           roughness={cfg.roughness}
           metalness={cfg.metalness}
         />
